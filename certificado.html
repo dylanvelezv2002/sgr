@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Certificado</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100%;
+      padding-top: 30px;
+    }
+    .container {
+      width: 80%;
+      max-width: 900px;
+      background-color: #ffffff;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+    label {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 8px;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .form-section {
+      margin-bottom: 20px;
+    }
+    .admin-section {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    .error-message {
+      color: red;
+      font-size: 14px;
+    }
+    .certificado-container {
+      display: none;
+      margin-top: 30px;
+      text-align: center;
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .certificado-container h3 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .certificado-container p {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Generador de Certificado de Aprobación</h2>
+
+  <!-- Login Administrador -->
+  <div id="adminLogin">
+    <h3>Acceder al Modo Administrador</h3>
+    <div class="form-section">
+      <label for="adminPassword">Contraseña Administrador:</label>
+      <input type="password" id="adminPassword" placeholder="Ingrese la contraseña">
+      <button type="button" onclick="accederAdmin()">Acceder</button>
+      <p class="error-message" id="errorMessage" style="display: none;">Contraseña incorrecta. Inténtalo de nuevo.</p>
+    </div>
+  </div>
+
+  <!-- Configuración Administrador -->
+  <div id="adminConfig" class="admin-section">
+    <h3>Configuración del N° de Trámite</h3>
+    <div class="form-section">
+      <label for="prefijoTramiteConfig">Prefijo del N° de Trámite:</label>
+      <input type="text" id="prefijoTramiteConfig" value="CZ5-8-G" required>
+    </div>
+    <div class="form-section">
+      <label for="digitosTramiteConfig">Número de dígitos al final:</label>
+      <input type="number" id="digitosTramiteConfig" value="4" min="1" required>
+    </div>
+    <div class="form-section">
+      <label for="ultimoTramiteConfig">Último N° de Trámite:</label>
+      <input type="number" id="ultimoTramiteConfig" value="40" min="0" required>
+    </div>
+    <button type="button" id="guardarConfigBtn">Guardar Configuración</button>
+  </div>
+
+  <!-- Formulario -->
+  <form id="formulario">
+    <div class="form-section"><label>Evento Deportivo:</label><input type="text" id="evento" required></div>
+    <div class="form-section"><label>Presentado por:</label><input type="text" id="presentadoPor" required></div>
+    <div class="form-section"><label>Cédula de Identidad:</label><input type="text" id="cedula" required></div>
+    <div class="form-section"><label>Lugar del Evento:</label><input type="text" id="lugar" required></div>
+    <div class="form-section"><label>Provincia:</label>
+      <select id="provincia" required>
+        <option value="">Seleccione una provincia</option>
+        <option value="Guayas">Guayas</option>
+      </select>
+    </div>
+    <div class="form-section"><label>Ciudad:</label>
+      <select id="ciudad" required>
+        <option value="">Seleccione una ciudad</option>
+        <option value="Guayaquil">Guayaquil</option>
+      </select>
+    </div>
+    <div class="form-section"><label>Día y Hora:</label><input type="datetime-local" id="fechaHora" required></div>
+    <div class="form-section"><label>Estado del Trámite:</label>
+      <select id="estado" required>
+        <option value="Aprobado">Aprobado</option>
+        <option value="Rechazado">Rechazado</option>
+      </select>
+    </div>
+    <button type="submit" id="generateBtn">Generar Certificado</button>
+  </form>
+
+  <!-- Vista previa certificado -->
+  <div id="certificado" class="certificado-container">
+    <h3>CERTIFICADO DE APROBACIÓN</h3>
+    <p><strong>Evento Deportivo:</strong> <span id="eventoCertificado"></span></p>
+    <p><strong>Presentado por:</strong> <span id="presentadoPorCertificado"></span></p>
+    <p><strong>Cédula de Identidad:</strong> <span id="cedulaCertificado"></span></p>
+    <p><strong>Lugar del Evento:</strong> <span id="lugarCertificado"></span></p>
+    <p><strong>Ciudad:</strong> <span id="ciudadCertificado"></span></p>
+    <p><strong>Provincia:</strong> <span id="provinciaCertificado"></span></p>
+    <p><strong>Día y Hora:</strong> <span id="fechaHoraCertificado"></span></p>
+    <p><strong>Estado del Trámite:</strong> <span id="estadoCertificado"></span></p>
+  </div>
+</div>
+
+<script>
+const { jsPDF } = window.jspdf;
+const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec"; // Pega aquí la URL
+
+function accederAdmin() {
+  const password = document.getElementById("adminPassword").value;
+  if (password === "admin123") {
+    document.getElementById("adminConfig").style.display = "block";
+    document.getElementById("adminLogin").style.display = "none";
+    actualizarUltimoTramiteDesdeSheets();
+  } else {
+    document.getElementById("errorMessage").style.display = "block";
+  }
+}
+
+function actualizarUltimoTramiteDesdeSheets() {
+  fetch(scriptURL)
+    .then(res => res.text())
+    .then(numero => {
+      if (numero && numero !== "0") {
+        let ultimo = numero.split('-').pop();
+        document.getElementById("ultimoTramiteConfig").value = ultimo.padStart(4, '0');
+        localStorage.setItem("ultimoTramite", ultimo);
+      }
+    });
+}
+
+document.getElementById("guardarConfigBtn").addEventListener("click", function() {
+  localStorage.setItem("prefijoTramite", document.getElementById("prefijoTramiteConfig").value);
+  localStorage.setItem("digitosTramite", document.getElementById("digitosTramiteConfig").value);
+  localStorage.setItem("ultimoTramite", document.getElementById("ultimoTramiteConfig").value);
+  alert("Configuración guardada.");
+  document.getElementById("adminConfig").style.display = "none";
+  document.getElementById("adminLogin").style.display = "block";
+});
+
+document.getElementById("generateBtn").addEventListener("click", function(event) {
+  event.preventDefault();
+  const prefijoTramite = localStorage.getItem("prefijoTramite") || "CZ5-8-G";
+  const digitosTramite = localStorage.getItem("digitosTramite") || "4";
+  let ultimoTramite = parseInt(localStorage.getItem("ultimoTramite") || "0");
+  ultimoTramite++;
+  const numeroTramite = `${prefijoTramite}-2025-${ultimoTramite.toString().padStart(digitosTramite, '0')}`;
+  localStorage.setItem("ultimoTramite", ultimoTramite.toString());
+
+  Swal.fire({
+    title: '¿Confirmas la generación del Certificado?',
+    text: `Número de trámite: ${numeroTramite}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const datos = {
+        numeroTramite,
+        evento: document.getElementById("evento").value,
+        presentadoPor: document.getElementById("presentadoPor").value,
+        cedula: document.getElementById("cedula").value,
+        lugar: document.getElementById("lugar").value,
+        ciudad: document.getElementById("ciudad").value,
+        provincia: document.getElementById("provincia").value,
+        fechaHora: document.getElementById("fechaHora").value,
+        estado: document.getElementById("estado").value
+      };
+
+      const formData = new FormData();
+      for (let key in datos) formData.append(key, datos[key]);
+
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(res => res.text())
+        .then(respuesta => {
+          if (respuesta.includes("OK")) {
+            for (let key in datos) {
+              if (document.getElementById(key + "Certificado")) {
+                document.getElementById(key + "Certificado").innerText = datos[key];
+              }
+            }
+            document.getElementById("certificado").style.display = "block";
+            const doc = new jsPDF();
+            doc.text("N° Trámite: " + numeroTramite, 10, 10);
+            doc.html(document.getElementById("certificado"), {
+              callback: function (doc) {
+                doc.save('certificado_aprobacion.pdf');
+              }
+            });
+            document.getElementById("formulario").reset();
+            actualizarUltimoTramiteDesdeSheets();
+          } else {
+            Swal.fire("Error", "No se pudieron guardar los datos en Sheets", "error");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          Swal.fire("Error", "Hubo un problema al guardar en Sheets", "error");
+        });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
