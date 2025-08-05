@@ -1,12 +1,106 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGR</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página de Inicio - Servicios</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
+    body {
+      background: #f4f6f9;
+      color: #333;
+    }
+    header {
+      background: #0d6efd;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      font-size: 1.8rem;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+    .card i {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #0d6efd;
+    }
+    .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #0d6efd;
+      color: white;
+      margin-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <h1>Bienvenido a mi página SGR</h1>
-    <p>Esto es una prueba de GitHub Pages.</p>
+  <header>
+    <h1>Bienvenido a la Plataforma de Servicios</h1>
+    <p>Selecciona un servicio para continuar</p>
+  </header>
+
+  <div class="container">
+    <div class="card" onclick="location.href='servicio1.html'">
+      <i class="fas fa-file-alt"></i>
+      <h3>Formulario en Línea</h3>
+      <p>Accede al formulario para registrar tus solicitudes.</p>
+    </div>
+    <div class="card" onclick="location.href='servicio2.html'">
+      <i class="fas fa-database"></i>
+      <h3>Base de Datos</h3>
+      <p>Consulta la información registrada en el sistema.</p>
+    </div>
+    <div class="card" onclick="location.href='servicio3.html'">
+      <i class="fas fa-chart-line"></i>
+      <h3>Reportes</h3>
+      <p>Genera y descarga reportes detallados.</p>
+    </div>
+    <div class="card" onclick="location.href='servicio4.html'">
+      <i class="fas fa-user-shield"></i>
+      <h3>Administración</h3>
+      <p>Gestiona usuarios y configuraciones del sistema.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 Plataforma de Servicios | Todos los derechos reservados</p>
+  </footer>
 </body>
 </html>
