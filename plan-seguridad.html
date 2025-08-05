@@ -3,56 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Certificado</title>
+  <title>Certificado de Plan de Seguridad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f7f7f7;
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      height: 100%;
-      padding-top: 30px;
+      font-family: 'Roboto', sans-serif;
+    }
+    body {
+      background-color: #f4f6f9;
+      color: #333;
+      padding-bottom: 70px;
+    }
+    header {
+      background: #2F338F;
+      color: white;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    header img {
+      max-height: 70px;
+      display: block;
+      margin: 0 auto 0.5rem;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
     }
     .container {
-      width: 80%;
-      max-width: 900px;
-      background-color: #ffffff;
-      padding: 30px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
-      color: #333;
-      font-size: 28px;
-      margin-bottom: 20px;
+      color: #2F338F;
+      font-size: 1.6rem;
+      margin-bottom: 1.5rem;
     }
     h3 {
-      color: #4CAF50;
-      margin-bottom: 10px;
+      color: #2F338F;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
     }
     label {
-      font-size: 16px;
+      font-size: 0.95rem;
       color: #555;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       display: block;
     }
     input, select, button {
       width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 16px;
-      box-sizing: border-box;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: #2F338F;
+      outline: none;
     }
     button {
-      background-color: #4CAF50;
+      background-color: #2F338F;
       color: white;
       font-weight: bold;
       cursor: pointer;
@@ -60,58 +86,90 @@
       transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #24286a;
     }
     .form-section {
-      margin-bottom: 20px;
+      margin-bottom: 1rem;
     }
+    /* Formulario en dos columnas */
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 2rem;
+    }
+    form button {
+      grid-column: span 2;
+    }
+    /* Sección admin */
     .admin-section {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
+      margin-top: 1rem;
+      padding: 1rem;
       border: 1px solid #ddd;
       background-color: #f9f9f9;
       border-radius: 8px;
+      grid-column: span 2;
     }
-    .error-message {
-      color: red;
-      font-size: 14px;
-    }
+    /* Vista certificado */
     .certificado-container {
       display: none;
-      margin-top: 30px;
+      margin-top: 2rem;
       text-align: center;
       background-color: #f9f9f9;
-      padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      grid-column: span 2;
     }
     .certificado-container h3 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #333;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      color: #2F338F;
     }
     .certificado-container p {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #2F338F;
+      color: white;
+      text-align: center;
+      padding: 0.8rem;
+      font-size: 0.85rem;
+    }
+    /* Responsive para móviles */
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+      form button, .admin-section, .certificado-container {
+        grid-column: span 1;
+      }
     }
   </style>
 </head>
 <body>
 
+<header>
+  <img src="Logo el NUEVO ECUADOR.png" alt="Logo SNGRE">
+  <h1>Secretaría Nacional de Gestión de Riesgos</h1>
+  <p>Coordinación Zonal 5-8 | Uso Interno y Personal</p>
+</header>
+
 <div class="container">
-  <h2>Generador de Certificado de Aprobación</h2>
+  <h2>Certificado de Aprobación de Plan de Seguridad</h2>
 
   <!-- Login Administrador -->
-  <div id="adminLogin">
+  <div id="adminLogin" class="form-section" style="grid-column: span 2;">
     <h3>Acceder al Modo Administrador</h3>
-    <div class="form-section">
-      <label for="adminPassword">Contraseña Administrador:</label>
-      <input type="password" id="adminPassword" placeholder="Ingrese la contraseña">
-      <button type="button" onclick="accederAdmin()">Acceder</button>
-      <p class="error-message" id="errorMessage" style="display: none;">Contraseña incorrecta. Inténtalo de nuevo.</p>
-    </div>
+    <label for="adminPassword">Contraseña Administrador:</label>
+    <input type="password" id="adminPassword" placeholder="Ingrese la contraseña">
+    <button type="button" onclick="accederAdmin()">Acceder</button>
+    <p class="error-message" id="errorMessage" style="display: none; color: red;">Contraseña incorrecta. Inténtalo de nuevo.</p>
   </div>
 
   <!-- Configuración Administrador -->
@@ -174,9 +232,13 @@
   </div>
 </div>
 
+<footer>
+  © 2025 Secretaría Nacional de Gestión de Riesgos - CZ 5-8 | Uso Interno
+</footer>
+
 <script>
 const { jsPDF } = window.jspdf;
-const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec"; // Pega aquí la URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec";
 
 function accederAdmin() {
   const password = document.getElementById("adminPassword").value;
@@ -205,7 +267,7 @@ document.getElementById("guardarConfigBtn").addEventListener("click", function()
   localStorage.setItem("prefijoTramite", document.getElementById("prefijoTramiteConfig").value);
   localStorage.setItem("digitosTramite", document.getElementById("digitosTramiteConfig").value);
   localStorage.setItem("ultimoTramite", document.getElementById("ultimoTramiteConfig").value);
-  alert("Configuración guardada.");
+  Swal.fire("Guardado", "Configuración guardada correctamente", "success");
   document.getElementById("adminConfig").style.display = "none";
   document.getElementById("adminLogin").style.display = "block";
 });
