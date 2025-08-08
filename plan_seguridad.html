@@ -143,18 +143,16 @@ function guardarEnSheets(datos) {
   for (let key in datos) formData.append(key, datos[key]);
 
   fetch(scriptURL, { method: "POST", body: formData })
-    .then(res => res.json()) // ahora sí, porque doPost devuelve JSON válido
+    .then(res => res.json()) // ← ahora el servidor devuelve JSON válido
     .then(respuesta => {
       console.log("📥 Respuesta recibida del servidor:", respuesta);
       if (respuesta.status === "OK") {
         Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
         document.getElementById("formulario").reset();
-        if (respuesta.pdf) {
-          console.log("📄 PDF generado en URL:", respuesta.pdf);
-          window.open(respuesta.pdf, "_blank");
-        }
+        console.log("📄 PDF generado en URL:", respuesta.pdf);
+        window.open(respuesta.pdf, "_blank");
       } else {
-        Swal.fire("Error", respuesta.message || "No se pudieron guardar los datos", "error");
+        Swal.fire("Error", "No se pudieron guardar los datos", "error");
         console.error("❌ Error del servidor:", respuesta.message);
       }
     })
@@ -166,4 +164,3 @@ function guardarEnSheets(datos) {
 </script>
 </body>
 </html>
-
