@@ -5,151 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Certificado de Plan de Seguridad</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-    }
-    body {
-      background-color: #f4f6f9;
-      color: #333;
-      padding-bottom: 70px;
-    }
-    header {
-      background: #2F338F;
-      color: white;
-      text-align: center;
-      padding: 1.5rem 1rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
-    header img {
-      max-height: 70px;
-      display: block;
-      margin: 0 auto 0.5rem;
-    }
-    header h1 {
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
-    header p {
-      font-size: 0.9rem;
-      opacity: 0.9;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      color: #2F338F;
-      font-size: 1.6rem;
-      margin-bottom: 1.5rem;
-    }
-    h3 {
-      color: #2F338F;
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
-    }
-    label {
-      font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 4px;
-      display: block;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
-    input:focus, select:focus {
-      border-color: #2F338F;
-      outline: none;
-    }
-    button {
-      background-color: #2F338F;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #24286a;
-    }
-    .form-section {
-      margin-bottom: 1rem;
-    }
-    /* Formulario en dos columnas */
-    form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem 2rem;
-    }
-    form button {
-      grid-column: span 2;
-    }
-    /* Sección admin */
-    .admin-section {
-      display: none;
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid #ddd;
-      background-color: #f9f9f9;
-      border-radius: 8px;
-      grid-column: span 2;
-    }
-    /* Vista certificado */
-    .certificado-container {
-      display: none;
-      margin-top: 2rem;
-      text-align: center;
-      background-color: #f9f9f9;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      grid-column: span 2;
-    }
-    .certificado-container h3 {
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-      color: #2F338F;
-    }
-    .certificado-container p {
-      font-size: 0.95rem;
-      margin-bottom: 8px;
-    }
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #2F338F;
-      color: white;
-      text-align: center;
-      padding: 0.8rem;
-      font-size: 0.85rem;
-    }
-    /* Responsive para móviles */
-    @media (max-width: 768px) {
-      form {
-        grid-template-columns: 1fr;
-      }
-      form button, .admin-section, .certificado-container {
-        grid-column: span 1;
-      }
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+    body { background-color: #f4f6f9; color: #333; padding-bottom: 70px; }
+    header { background: #2F338F; color: white; text-align: center; padding: 1.5rem 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+    header img { max-height: 70px; display: block; margin: 0 auto 0.5rem; }
+    header h1 { font-size: 1.4rem; font-weight: bold; }
+    header p { font-size: 0.9rem; opacity: 0.9; }
+    .container { max-width: 1000px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #2F338F; font-size: 1.6rem; margin-bottom: 1.5rem; }
+    label { font-size: 0.95rem; color: #555; margin-bottom: 4px; display: block; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
+    input:focus, select:focus { border-color: #2F338F; outline: none; }
+    button { background-color: #2F338F; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.3s ease; }
+    button:hover { background-color: #24286a; }
+    .form-section { margin-bottom: 1rem; }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
+    form button { grid-column: span 2; }
+    footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #2F338F; color: white; text-align: center; padding: 0.8rem; font-size: 0.85rem; }
+    @media (max-width: 768px) { form { grid-template-columns: 1fr; } form button { grid-column: span 1; } }
   </style>
 </head>
 <body>
@@ -163,34 +38,6 @@
 <div class="container">
   <h2>Certificado de Aprobación de Plan de Seguridad</h2>
 
-  <!-- Login Administrador -->
-  <div id="adminLogin" class="form-section" style="grid-column: span 2;">
-    <h3>Acceder al Modo Administrador</h3>
-    <label for="adminPassword">Contraseña Administrador:</label>
-    <input type="password" id="adminPassword" placeholder="Ingrese la contraseña">
-    <button type="button" onclick="accederAdmin()">Acceder</button>
-    <p class="error-message" id="errorMessage" style="display: none; color: red;">Contraseña incorrecta. Inténtalo de nuevo.</p>
-  </div>
-
-  <!-- Configuración Administrador -->
-  <div id="adminConfig" class="admin-section">
-    <h3>Configuración del N° de Trámite</h3>
-    <div class="form-section">
-      <label for="prefijoTramiteConfig">Prefijo del N° de Trámite:</label>
-      <input type="text" id="prefijoTramiteConfig" value="CZ5-8-G" required>
-    </div>
-    <div class="form-section">
-      <label for="digitosTramiteConfig">Número de dígitos al final:</label>
-      <input type="number" id="digitosTramiteConfig" value="4" min="1" required>
-    </div>
-    <div class="form-section">
-      <label for="ultimoTramiteConfig">Último N° de Trámite:</label>
-      <input type="number" id="ultimoTramiteConfig" value="40" min="0" required>
-    </div>
-    <button type="button" id="guardarConfigBtn">Guardar Configuración</button>
-  </div>
-
-  <!-- Formulario -->
   <form id="formulario">
     <div class="form-section"><label>Evento Deportivo:</label><input type="text" id="evento" required></div>
     <div class="form-section"><label>Presentado por:</label><input type="text" id="presentadoPor" required></div>
@@ -208,28 +55,19 @@
         <option value="Guayaquil">Guayaquil</option>
       </select>
     </div>
-    <div class="form-section"><label>Día y Hora:</label><input type="datetime-local" id="fechaHora" required></div>
+    <div class="form-section"><label>Fecha:</label><input type="date" id="fechaEvento" required></div>
+    <div class="form-section"><label>Hora de inicio:</label><input type="time" id="horaInicio" required></div>
+    <div class="form-section"><label>Hora de finalización:</label><input type="time" id="horaFin" required></div>
+    <div class="form-section"><label>Aforo:</label><input type="number" id="aforo" required></div>
     <div class="form-section"><label>Estado del Trámite:</label>
       <select id="estado" required>
         <option value="Aprobado">Aprobado</option>
         <option value="Rechazado">Rechazado</option>
       </select>
     </div>
+    <div class="form-section"><label>Fecha de Emisión:</label><input type="date" id="fechaEmision" required></div>
     <button type="submit" id="generateBtn">Generar Certificado</button>
   </form>
-
-  <!-- Vista previa certificado -->
-  <div id="certificado" class="certificado-container">
-    <h3>CERTIFICADO DE APROBACIÓN</h3>
-    <p><strong>Evento Deportivo:</strong> <span id="eventoCertificado"></span></p>
-    <p><strong>Presentado por:</strong> <span id="presentadoPorCertificado"></span></p>
-    <p><strong>Cédula de Identidad:</strong> <span id="cedulaCertificado"></span></p>
-    <p><strong>Lugar del Evento:</strong> <span id="lugarCertificado"></span></p>
-    <p><strong>Ciudad:</strong> <span id="ciudadCertificado"></span></p>
-    <p><strong>Provincia:</strong> <span id="provinciaCertificado"></span></p>
-    <p><strong>Día y Hora:</strong> <span id="fechaHoraCertificado"></span></p>
-    <p><strong>Estado del Trámite:</strong> <span id="estadoCertificado"></span></p>
-  </div>
 </div>
 
 <footer>
@@ -237,105 +75,122 @@
 </footer>
 
 <script>
-const { jsPDF } = window.jspdf;
 const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec";
 
-function accederAdmin() {
-  const password = document.getElementById("adminPassword").value;
-  if (password === "admin123") {
-    document.getElementById("adminConfig").style.display = "block";
-    document.getElementById("adminLogin").style.display = "none";
-    actualizarUltimoTramiteDesdeSheets();
+// Obtener el siguiente número de trámite
+async function obtenerNumeroTramite() {
+  const resp = await fetch(`${scriptURL}?action=last`);
+  const ultimo = await resp.text();
+  const year = new Date().getFullYear();
+  let siguiente;
+
+  if (!ultimo || ultimo === "0") {
+    siguiente = `CZ5-8-G-${year}-0001`;
   } else {
-    document.getElementById("errorMessage").style.display = "block";
+    const partes = ultimo.split("-");
+    const anioUltimo = partes[3];
+    let num = parseInt(partes[4]);
+    if (anioUltimo !== String(year)) num = 0;
+    siguiente = `CZ5-8-G-${year}-${String(num + 1).padStart(4, '0')}`;
   }
+  return siguiente;
 }
 
-function actualizarUltimoTramiteDesdeSheets() {
-  fetch(scriptURL)
-    .then(res => res.text())
-    .then(numero => {
-      if (numero && numero !== "0") {
-        let ultimo = numero.split('-').pop();
-        document.getElementById("ultimoTramiteConfig").value = ultimo.padStart(4, '0');
-        localStorage.setItem("ultimoTramite", ultimo);
-      }
-    });
-}
-
-document.getElementById("guardarConfigBtn").addEventListener("click", function() {
-  localStorage.setItem("prefijoTramite", document.getElementById("prefijoTramiteConfig").value);
-  localStorage.setItem("digitosTramite", document.getElementById("digitosTramiteConfig").value);
-  localStorage.setItem("ultimoTramite", document.getElementById("ultimoTramiteConfig").value);
-  Swal.fire("Guardado", "Configuración guardada correctamente", "success");
-  document.getElementById("adminConfig").style.display = "none";
-  document.getElementById("adminLogin").style.display = "block";
-});
-
-document.getElementById("generateBtn").addEventListener("click", function(event) {
+document.getElementById("formulario").addEventListener("submit", async function(event) {
   event.preventDefault();
-  const prefijoTramite = localStorage.getItem("prefijoTramite") || "CZ5-8-G";
-  const digitosTramite = localStorage.getItem("digitosTramite") || "4";
-  let ultimoTramite = parseInt(localStorage.getItem("ultimoTramite") || "0");
-  ultimoTramite++;
-  const numeroTramite = `${prefijoTramite}-2025-${ultimoTramite.toString().padStart(digitosTramite, '0')}`;
-  localStorage.setItem("ultimoTramite", ultimoTramite.toString());
+
+  const datos = {
+    numeroTramite: await obtenerNumeroTramite(),
+    evento: document.getElementById("evento").value,
+    presentadoPor: document.getElementById("presentadoPor").value,
+    cedula: document.getElementById("cedula").value,
+    lugar: document.getElementById("lugar").value,
+    ciudad: document.getElementById("ciudad").value,
+    provincia: document.getElementById("provincia").value,
+    fechaEvento: document.getElementById("fechaEvento").value,
+    horaInicio: document.getElementById("horaInicio").value,
+    horaFin: document.getElementById("horaFin").value,
+    aforo: document.getElementById("aforo").value,
+    estado: document.getElementById("estado").value,
+    fechaEmision: document.getElementById("fechaEmision").value // Fecha de emisión
+  };
+
+  console.log("Datos a enviar:", datos);
 
   Swal.fire({
-    title: '¿Confirmas la generación del Certificado?',
-    text: `Número de trámite: ${numeroTramite}`,
-    icon: 'warning',
+    title: 'Confirmar generación',
+    text: `Se generará el trámite: ${datos.numeroTramite}`,
+    icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Confirmar',
-    cancelButtonText: 'Cancelar',
+    cancelButtonText: 'Cancelar'
   }).then((result) => {
     if (result.isConfirmed) {
-      const datos = {
-        numeroTramite,
-        evento: document.getElementById("evento").value,
-        presentadoPor: document.getElementById("presentadoPor").value,
-        cedula: document.getElementById("cedula").value,
-        lugar: document.getElementById("lugar").value,
-        ciudad: document.getElementById("ciudad").value,
-        provincia: document.getElementById("provincia").value,
-        fechaHora: document.getElementById("fechaHora").value,
-        estado: document.getElementById("estado").value
-      };
-
-      const formData = new FormData();
-      for (let key in datos) formData.append(key, datos[key]);
-
-      fetch(scriptURL, { method: "POST", body: formData })
-        .then(res => res.text())
-        .then(respuesta => {
-          if (respuesta.includes("OK")) {
-            for (let key in datos) {
-              if (document.getElementById(key + "Certificado")) {
-                document.getElementById(key + "Certificado").innerText = datos[key];
-              }
-            }
-            document.getElementById("certificado").style.display = "block";
-            const doc = new jsPDF();
-            doc.text("N° Trámite: " + numeroTramite, 10, 10);
-            doc.html(document.getElementById("certificado"), {
-              callback: function (doc) {
-                doc.save('certificado_aprobacion.pdf');
-              }
-            });
-            document.getElementById("formulario").reset();
-            actualizarUltimoTramiteDesdeSheets();
-          } else {
-            Swal.fire("Error", "No se pudieron guardar los datos en Sheets", "error");
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          Swal.fire("Error", "Hubo un problema al guardar en Sheets", "error");
-        });
+      guardarEnSheets(datos);
     }
   });
 });
-</script>
 
+function guardarEnSheets(datos) {
+  const formData = new FormData();
+  for (let key in datos) formData.append(key, datos[key]);
+
+  fetch(scriptURL, { method: "POST", body: formData })
+    .then(res => res.text())
+    .then(respuesta => {
+      console.log("Respuesta de Google Sheets:", respuesta);
+      if (respuesta.includes("OK")) {
+        Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
+        document.getElementById("formulario").reset();
+        generarPDF(datos);
+      } else {
+        Swal.fire("Error", "No se pudieron guardar los datos", "error");
+      }
+    })
+    .catch(err => {
+      console.error("Error en la comunicación con Sheets:", err);
+      Swal.fire("Error", "Hubo un problema al guardar", "error");
+    });
+}
+
+// Generación del PDF con Google Docs
+function generarPDF(datos) {
+  const docTemplateID = "1LvzHwATb9-stL_du5v1FtxGwU5-FNt7B99-ZdcnUa1M"; // Reemplaza con el ID de tu documento de plantilla
+  
+  // Generar el PDF usando la plantilla de Google Docs
+  fetch(`https://docs.google.com/document/d/${docTemplateID}/copy?format=pdf`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      numeroTramite: datos.numeroTramite,
+      evento: datos.evento,
+      presentadoPor: datos.presentadoPor,
+      cedula: datos.cedula,
+      lugar: datos.lugar,
+      ciudad: datos.ciudad,
+      provincia: datos.provincia,
+      fechaEvento: datos.fechaEvento,
+      horaInicio: datos.horaInicio,
+      horaFin: datos.horaFin,
+      aforo: datos.aforo,
+      estado: datos.estado,
+      fechaEmision: datos.fechaEmision
+    })
+  })
+  .then(response => response.blob())
+  .then(blob => {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Certificado_${datos.numeroTramite}.pdf`;
+    link.click();
+  })
+  .catch(err => {
+    console.error("Error generando el PDF", err);
+    Swal.fire("Error", "Hubo un problema al generar el PDF", "error");
+  });
+}
+</script>
 </body>
 </html>
