@@ -135,25 +135,27 @@ function guardarEnSheets(datos) {
   fetch(scriptURL, { method: "POST", body: formData })
     .then(res => res.json())
     .then(respuesta => {
-      console.log("Respuesta:", respuesta);
-      if (respuesta.status === "OK" && respuesta.pdf) {
-        Swal.fire("Éxito", "Trámite guardado correctamente. Descargando PDF...", "success");
+      console.log("Respuesta del servidor:", respuesta);
+      if (respuesta.status === "OK") {
+        Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
         document.getElementById("formulario").reset();
 
-        const link = document.createElement("a");
-        link.href = respuesta.pdf;
-        link.download = `Certificado_${datos.numeroTramite}.pdf`;
-        link.target = "_blank";
-        link.click();
+        if (respuesta.pdf) {
+          const link = document.createElement("a");
+          link.href = respuesta.pdf;
+          link.download = `Certificado_${datos.numeroTramite}.pdf`;
+          link.click();
+        }
       } else {
-        Swal.fire("Error", "No se pudo generar el PDF", "error");
+        Swal.fire("Error", "No se pudieron guardar los datos", "error");
       }
     })
     .catch(err => {
-      console.error("Error:", err);
+      console.error("Error en la comunicación con el servidor:", err);
       Swal.fire("Error", "Hubo un problema al guardar", "error");
     });
 }
 </script>
+
 </body>
 </html>
