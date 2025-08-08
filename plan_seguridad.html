@@ -78,11 +78,13 @@
 const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec";
 
 async function obtenerNumeroTramite() {
+  console.log("🔄 Solicitando último número de trámite...");
   const resp = await fetch(`${scriptURL}?action=last`);
   const ultimo = await resp.text();
+  console.log("📄 Último trámite en hoja:", ultimo);
+
   const year = new Date().getFullYear();
   let siguiente;
-
   if (!ultimo || ultimo === "0") {
     siguiente = `CZ5-8-G-${year}-0001`;
   } else {
@@ -92,11 +94,13 @@ async function obtenerNumeroTramite() {
     if (anioUltimo !== String(year)) num = 0;
     siguiente = `CZ5-8-G-${year}-${String(num + 1).padStart(4, '0')}`;
   }
+  console.log("✅ Siguiente número de trámite generado:", siguiente);
   return siguiente;
 }
 
 document.getElementById("formulario").addEventListener("submit", async function(event) {
   event.preventDefault();
+  console.log("📝 Enviando formulario...");
 
   const datos = {
     numeroTramite: await obtenerNumeroTramite(),
@@ -114,6 +118,8 @@ document.getElementById("formulario").addEventListener("submit", async function(
     fechaEmision: document.getElementById("fechaEmision").value
   };
 
+  console.log("📦 Datos preparados para enviar:", datos);
+
   Swal.fire({
     title: 'Confirmar generación',
     text: `Se generará el trámite: ${datos.numeroTramite}`,
@@ -123,39 +129,38 @@ document.getElementById("formulario").addEventListener("submit", async function(
     cancelButtonText: 'Cancelar'
   }).then((result) => {
     if (result.isConfirmed) {
+      console.log("✅ Confirmado por el usuario, enviando a Google Apps Script...");
       guardarEnSheets(datos);
+    } else {
+      console.log("❌ Cancelado por el usuario");
     }
   });
 });
 
 function guardarEnSheets(datos) {
+  console.log("📤 Enviando datos a Google Sheets...");
   const formData = new FormData();
   for (let key in datos) formData.append(key, datos[key]);
 
   fetch(scriptURL, { method: "POST", body: formData })
     .then(res => res.json())
     .then(respuesta => {
-      console.log("Respuesta del servidor:", respuesta);
+      console.log("📥 Respuesta recibida del servidor:", respuesta);
       if (respuesta.status === "OK") {
         Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
         document.getElementById("formulario").reset();
-
-        if (respuesta.pdf) {
-          const link = document.createElement("a");
-          link.href = respuesta.pdf;
-          link.download = `Certificado_${datos.numeroTramite}.pdf`;
-          link.click();
-        }
+        console.log("📄 PDF generado en URL:", respuesta.pdf);
+        window.open(respuesta.pdf, "_blank");
       } else {
         Swal.fire("Error", "No se pudieron guardar los datos", "error");
+        console.error("❌ Error del servidor:", respuesta.message);
       }
     })
     .catch(err => {
-      console.error("Error en la comunicación con el servidor:", err);
+      console.error("🔥 Error en la comunicación con Sheets:", err);
       Swal.fire("Error", "Hubo un problema al guardar", "error");
     });
 }
 </script>
-
 </body>
 </html>
