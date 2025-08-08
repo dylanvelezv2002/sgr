@@ -77,7 +77,6 @@
 <script>
 const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec";
 
-// Obtener el siguiente número de trámite
 async function obtenerNumeroTramite() {
   const resp = await fetch(`${scriptURL}?action=last`);
   const ultimo = await resp.text();
@@ -112,10 +111,8 @@ document.getElementById("formulario").addEventListener("submit", async function(
     horaFin: document.getElementById("horaFin").value,
     aforo: document.getElementById("aforo").value,
     estado: document.getElementById("estado").value,
-    fechaEmision: document.getElementById("fechaEmision").value // Fecha de emisión
+    fechaEmision: document.getElementById("fechaEmision").value
   };
-
-  console.log("Datos a enviar:", datos);
 
   Swal.fire({
     title: 'Confirmar generación',
@@ -136,13 +133,18 @@ function guardarEnSheets(datos) {
   for (let key in datos) formData.append(key, datos[key]);
 
   fetch(scriptURL, { method: "POST", body: formData })
-    .then(res => res.text())
+    .then(res => res.json())
     .then(respuesta => {
-      console.log("Respuesta de Google Sheets:", respuesta);
-      if (respuesta.includes("OK")) {
-        Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
-        document.getElementById("formulario").reset();
-        generarPDF(datos);
+      if (respuesta.status === "OK" && respuesta.pdf) {
+        Swal.fire({
+          title: "Trámite guardado con éxito",
+          text: "El PDF está listo para descargar",
+          icon: "success",
+          confirmButtonText: "Descargar PDF"
+        }).then(() => {
+          window.open(respuesta.pdf, "_blank");
+          document.getElementById("formulario").reset();
+        });
       } else {
         Swal.fire("Error", "No se pudieron guardar los datos", "error");
       }
@@ -151,45 +153,6 @@ function guardarEnSheets(datos) {
       console.error("Error en la comunicación con Sheets:", err);
       Swal.fire("Error", "Hubo un problema al guardar", "error");
     });
-}
-
-// Generación del PDF con Google Docs
-function generarPDF(datos) {
-  const docTemplateID = "1LvzHwATb9-stL_du5v1FtxGwU5-FNt7B99-ZdcnUa1M"; // Reemplaza con el ID de tu documento de plantilla
-  
-  // Generar el PDF usando la plantilla de Google Docs
-  fetch(`https://docs.google.com/document/d/${docTemplateID}/copy?format=pdf`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      numeroTramite: datos.numeroTramite,
-      evento: datos.evento,
-      presentadoPor: datos.presentadoPor,
-      cedula: datos.cedula,
-      lugar: datos.lugar,
-      ciudad: datos.ciudad,
-      provincia: datos.provincia,
-      fechaEvento: datos.fechaEvento,
-      horaInicio: datos.horaInicio,
-      horaFin: datos.horaFin,
-      aforo: datos.aforo,
-      estado: datos.estado,
-      fechaEmision: datos.fechaEmision
-    })
-  })
-  .then(response => response.blob())
-  .then(blob => {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Certificado_${datos.numeroTramite}.pdf`;
-    link.click();
-  })
-  .catch(err => {
-    console.error("Error generando el PDF", err);
-    Swal.fire("Error", "Hubo un problema al generar el PDF", "error");
-  });
 }
 </script>
 </body>
