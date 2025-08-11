@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Certificado de Plan de Seguridad</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -118,48 +118,76 @@ document.getElementById("formulario").addEventListener("submit", async function(
     fechaEmision: document.getElementById("fechaEmision").value
   };
 
-  console.log("📦 Datos preparados para enviar:", datos);
+  console.log("📦 Datos preparados:", datos);
 
   Swal.fire({
-    title: 'Confirmar generación',
-    text: `Se generará el trámite: ${datos.numeroTramite}`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Confirmar',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      console.log("✅ Confirmado por el usuario, enviando a Google Apps Script...");
-      guardarEnSheets(datos);
-    } else {
-      console.log("❌ Cancelado por el usuario");
-    }
+    title: `Generando nuevo certificado`,
+    html: `Trámite <b>${datos.numeroTramite}</b><br>Por favor, espera...`,
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
   });
+
+  try {
+    await guardarEnSheets(datos);
+  } catch (err) {
+    console.error("🔥 Falló guardarEnSheets:", err);
+    Swal.fire("Error", "Hubo un problema al guardar", "error");
+  }
 });
 
-function guardarEnSheets(datos) {
-  console.log("📤 Enviando datos a Google Sheets...");
+async function guardarEnSheets(datos) {
+  console.log("📤 Enviando datos a Google Apps Script...");
+
+  // Enviar como FormData (lo que ya usabas), pero manejando respuesta robustamente.
   const formData = new FormData();
   for (let key in datos) formData.append(key, datos[key]);
 
-  fetch(scriptURL, { method: "POST", body: formData })
-    .then(res => res.json()) // ← ahora el servidor devuelve JSON válido
-    .then(respuesta => {
-      console.log("📥 Respuesta recibida del servidor:", respuesta);
-      if (respuesta.status === "OK") {
-        Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
-        document.getElementById("formulario").reset();
-        console.log("📄 PDF generado en URL:", respuesta.pdf);
-        window.open(respuesta.pdf, "_blank");
+  const res = await fetch(scriptURL, { method: "POST", body: formData });
+
+  // Leemos SIEMPRE como texto y luego intentamos JSON.
+  const raw = await res.text();
+  console.log("📥 Respuesta cruda del servidor:", raw);
+
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+    console.log("✅ Respuesta interpretada como JSON:", payload);
+  } catch (e) {
+    console.warn("⚠️ No es JSON. Modo compatibilidad texto. Error parse:", e);
+    payload = raw.trim();
+  }
+
+  // Modo JSON (nuevo doPost con PDF)
+  if (typeof payload === "object" && payload !== null) {
+    if (payload.status === "OK") {
+      Swal.close();
+      Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
+      document.getElementById("formulario").reset();
+      if (payload.pdf) {
+        console.log("📄 Abriendo PDF:", payload.pdf);
+        window.open(payload.pdf, "_blank");
       } else {
-        Swal.fire("Error", "No se pudieron guardar los datos", "error");
-        console.error("❌ Error del servidor:", respuesta.message);
+        console.log("ℹ️ No vino URL PDF en la respuesta JSON.");
       }
-    })
-    .catch(err => {
-      console.error("🔥 Error en la comunicación con Sheets:", err);
-      Swal.fire("Error", "Hubo un problema al guardar", "error");
-    });
+      return;
+    } else {
+      console.error("❌ Servidor devolvió ERROR:", payload.message);
+      throw new Error(payload.message || "Error del servidor");
+    }
+  }
+
+  // Modo texto (legacy "OK")
+  if (typeof payload === "string" && payload.toUpperCase().includes("OK")) {
+    Swal.close();
+    Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
+    document.getElementById("formulario").reset();
+    console.log("ℹ️ Respuesta legacy 'OK' sin PDF. Si esperas PDF, asegúrate de que tu doPost devuelva JSON.");
+    return;
+  }
+
+  // Si llegó aquí, es un error no reconocido
+  console.error("❌ Respuesta inesperada del servidor:", payload);
+  throw new Error("Respuesta inesperada del servidor");
 }
 </script>
 </body>
