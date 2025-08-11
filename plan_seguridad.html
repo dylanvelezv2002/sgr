@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Certificado de Plan de Seguridad</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
@@ -75,13 +75,22 @@
 </footer>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbytT0oZfISPXP7ZKY1Mod8qljqxFxGZXbKA6-ySdipabEwPkEAMO0LRNoRsDztv1h0aOw/exec";
+/** ✅ USA SIEMPRE EL WORKER para evitar CORS */
+const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
 
+/** Util: formatea YYYY-MM-DD → “10 de agosto de 2025” */
+function formatearFechaLarga(iso) {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("es-EC", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/** Pide el último número y calcula el siguiente */
 async function obtenerNumeroTramite() {
-  console.log("🔄 Solicitando último número de trámite...");
-  const resp = await fetch(`${scriptURL}?action=last`);
+  console.log("🔄 Solicitando último número de trámite vía Worker...");
+  const resp = await fetch(`${workerURL}?action=last`, { method: "GET" });
   const ultimo = await resp.text();
-  console.log("📄 Último trámite en hoja:", ultimo);
+  console.log("📄 Último (raw):", ultimo);
 
   const year = new Date().getFullYear();
   let siguiente;
@@ -90,24 +99,24 @@ async function obtenerNumeroTramite() {
   } else {
     const partes = ultimo.split("-");
     const anioUltimo = partes[3];
-    let num = parseInt(partes[4]);
+    let num = parseInt(partes[4], 10);
     if (anioUltimo !== String(year)) num = 0;
     siguiente = `CZ5-8-G-${year}-${String(num + 1).padStart(4, '0')}`;
   }
-  console.log("✅ Siguiente número de trámite generado:", siguiente);
+  console.log("✅ Siguiente número:", siguiente);
   return siguiente;
 }
 
-document.getElementById("formulario").addEventListener("submit", async function(event) {
+document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
   console.log("📝 Enviando formulario...");
 
   const datos = {
     numeroTramite: await obtenerNumeroTramite(),
-    evento: document.getElementById("evento").value,
-    presentadoPor: document.getElementById("presentadoPor").value,
-    cedula: document.getElementById("cedula").value,
-    lugar: document.getElementById("lugar").value,
+    evento: document.getElementById("evento").value.trim(),
+    presentadoPor: document.getElementById("presentadoPor").value.trim(),
+    cedula: document.getElementById("cedula").value.trim(),
+    lugar: document.getElementById("lugar").value.trim(),
     ciudad: document.getElementById("ciudad").value,
     provincia: document.getElementById("provincia").value,
     fechaEvento: document.getElementById("fechaEvento").value,
@@ -117,78 +126,85 @@ document.getElementById("formulario").addEventListener("submit", async function(
     estado: document.getElementById("estado").value,
     fechaEmision: document.getElementById("fechaEmision").value
   };
-
   console.log("📦 Datos preparados:", datos);
 
-  Swal.fire({
-    title: `Generando nuevo certificado`,
-    html: `Trámite <b>${datos.numeroTramite}</b><br>Por favor, espera...`,
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  try {
-    await guardarEnSheets(datos);
-  } catch (err) {
-    console.error("🔥 Falló guardarEnSheets:", err);
-    Swal.fire("Error", "Hubo un problema al guardar", "error");
-  }
-});
-
-async function guardarEnSheets(datos) {
-  console.log("📤 Enviando datos a Google Apps Script...");
-
-  // Enviar como FormData (lo que ya usabas), pero manejando respuesta robustamente.
-  const formData = new FormData();
-  for (let key in datos) formData.append(key, datos[key]);
-
-  const res = await fetch(scriptURL, { method: "POST", body: formData });
-
-  // Leemos SIEMPRE como texto y luego intentamos JSON.
-  const raw = await res.text();
-  console.log("📥 Respuesta cruda del servidor:", raw);
-
-  let payload;
-  try {
-    payload = JSON.parse(raw);
-    console.log("✅ Respuesta interpretada como JSON:", payload);
-  } catch (e) {
-    console.warn("⚠️ No es JSON. Modo compatibilidad texto. Error parse:", e);
-    payload = raw.trim();
-  }
-
-  // Modo JSON (nuevo doPost con PDF)
-  if (typeof payload === "object" && payload !== null) {
-    if (payload.status === "OK") {
-      Swal.close();
-      Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
-      document.getElementById("formulario").reset();
-      if (payload.pdf) {
-        console.log("📄 Abriendo PDF:", payload.pdf);
-        window.open(payload.pdf, "_blank");
-      } else {
-        console.log("ℹ️ No vino URL PDF en la respuesta JSON.");
-      }
+  await Swal.fire({
+    title: 'Confirmar',
+    text: `Se generará el trámite: ${datos.numeroTramite}`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Generar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (r) => {
+    if (!r.isConfirmed) {
+      console.log("❌ Cancelado por el usuario");
       return;
-    } else {
-      console.error("❌ Servidor devolvió ERROR:", payload.message);
-      throw new Error(payload.message || "Error del servidor");
     }
-  }
 
-  // Modo texto (legacy "OK")
-  if (typeof payload === "string" && payload.toUpperCase().includes("OK")) {
-    Swal.close();
-    Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado correctamente`, "success");
-    document.getElementById("formulario").reset();
-    console.log("ℹ️ Respuesta legacy 'OK' sin PDF. Si esperas PDF, asegúrate de que tu doPost devuelva JSON.");
-    return;
-  }
+    // Loader mientras guarda y genera el PDF en Apps Script
+    Swal.fire({
+      title: `Generando nuevo certificado\n${datos.numeroTramite}`,
+      html: "Por favor, espera…",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-  // Si llegó aquí, es un error no reconocido
-  console.error("❌ Respuesta inesperada del servidor:", payload);
-  throw new Error("Respuesta inesperada del servidor");
-}
+    try {
+      // Enviar como x-www-form-urlencoded (lo que tu Worker espera reenviar)
+      const params = new URLSearchParams();
+      Object.entries(datos).forEach(([k, v]) => params.append(k, v));
+
+      console.log("📤 POST → Worker (x-www-form-urlencoded):", params.toString());
+      const res = await fetch(workerURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: params.toString()
+      });
+
+      const raw = await res.text();
+      console.log("📥 Respuesta cruda:", raw);
+
+      let payload;
+      try {
+        payload = JSON.parse(raw);
+        console.log("✅ JSON parseado:", payload);
+      } catch (e) {
+        console.warn("⚠️ No vino JSON. Fallback a texto:", e);
+        payload = raw.trim();
+      }
+
+      // Manejo JSON esperado {status:"OK", pdf:"..."}
+      if (typeof payload === "object" && payload && payload.status === "OK") {
+        Swal.close();
+        await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado y PDF generado.`, "success");
+        document.getElementById("formulario").reset();
+        if (payload.pdf) {
+          console.log("📄 Abriendo PDF:", payload.pdf);
+          window.open(payload.pdf, "_blank");
+        } else {
+          console.log("ℹ️ No vino URL de PDF en payload.");
+        }
+        return;
+      }
+
+      // Modo compatibilidad si por alguna razón el backend devolviera "OK"
+      if (typeof payload === "string" && payload.toUpperCase().includes("OK")) {
+        Swal.close();
+        await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado.`, "success");
+        document.getElementById("formulario").reset();
+        return;
+      }
+
+      console.error("❌ Respuesta inesperada:", payload);
+      throw new Error("Respuesta inesperada del servidor");
+
+    } catch (err) {
+      console.error("🔥 Error total:", err);
+      Swal.close();
+      Swal.fire("Error", "Hubo un problema al guardar/generar el PDF", "error");
+    }
+  });
+});
 </script>
 </body>
 </html>
