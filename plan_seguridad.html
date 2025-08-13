@@ -20,6 +20,7 @@
     input:focus, select:focus { border-color: #2F338F; outline: none; }
     button { background-color: #2F338F; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.3s ease; }
     button:hover { background-color: #24286a; }
+    button[disabled] { opacity: .6; cursor: not-allowed; }
     .form-section { margin-bottom: 1rem; }
     form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
     form button { grid-column: span 2; }
@@ -38,34 +39,78 @@
 <div class="container">
   <h2>Certificado de Aprobación de Plan de Seguridad</h2>
 
-  <form id="formulario">
-    <div class="form-section"><label>Evento Deportivo:</label><input type="text" id="evento" required></div>
-    <div class="form-section"><label>Presentado por:</label><input type="text" id="presentadoPor" required></div>
-    <div class="form-section"><label>Cédula de Identidad:</label><input type="text" id="cedula" required></div>
-    <div class="form-section"><label>Lugar del Evento:</label><input type="text" id="lugar" required></div>
-    <div class="form-section"><label>Provincia:</label>
+  <form id="formulario" autocomplete="off" novalidate>
+    <div class="form-section">
+      <label for="evento">Evento Deportivo:</label>
+      <input type="text" id="evento" required>
+    </div>
+
+    <div class="form-section">
+      <label for="presentadoPor">Presentado por:</label>
+      <input type="text" id="presentadoPor" required>
+    </div>
+
+    <div class="form-section">
+      <label for="cedula">Cédula de Identidad:</label>
+      <input type="text" id="cedula" inputmode="numeric" required>
+    </div>
+
+    <div class="form-section">
+      <label for="lugar">Lugar del Evento:</label>
+      <input type="text" id="lugar" required>
+    </div>
+
+    <div class="form-section">
+      <label for="provincia">Provincia:</label>
       <select id="provincia" required>
         <option value="">Seleccione una provincia</option>
         <option value="Guayas">Guayas</option>
+        <!-- agrega más provincias si quieres -->
       </select>
     </div>
-    <div class="form-section"><label>Ciudad:</label>
+
+    <div class="form-section">
+      <label for="ciudad">Ciudad:</label>
       <select id="ciudad" required>
         <option value="">Seleccione una ciudad</option>
         <option value="Guayaquil">Guayaquil</option>
+        <!-- agrega más ciudades si quieres -->
       </select>
     </div>
-    <div class="form-section"><label>Fecha:</label><input type="date" id="fechaEvento" required></div>
-    <div class="form-section"><label>Hora de inicio:</label><input type="time" id="horaInicio" required></div>
-    <div class="form-section"><label>Hora de finalización:</label><input type="time" id="horaFin" required></div>
-    <div class="form-section"><label>Aforo:</label><input type="number" id="aforo" required></div>
-    <div class="form-section"><label>Estado del Trámite:</label>
+
+    <div class="form-section">
+      <label for="fechaEvento">Fecha:</label>
+      <input type="date" id="fechaEvento" required>
+    </div>
+
+    <div class="form-section">
+      <label for="horaInicio">Hora de inicio:</label>
+      <input type="time" id="horaInicio" required>
+    </div>
+
+    <div class="form-section">
+      <label for="horaFin">Hora de finalización:</label>
+      <input type="time" id="horaFin" required>
+    </div>
+
+    <div class="form-section">
+      <label for="aforo">Aforo:</label>
+      <input type="number" id="aforo" min="0" step="1" required>
+    </div>
+
+    <div class="form-section">
+      <label for="estado">Estado del Trámite:</label>
       <select id="estado" required>
         <option value="Aprobado">Aprobado</option>
         <option value="Rechazado">Rechazado</option>
       </select>
     </div>
-    <div class="form-section"><label>Fecha de Emisión:</label><input type="date" id="fechaEmision" required></div>
+
+    <div class="form-section">
+      <label for="fechaEmision">Fecha de Emisión:</label>
+      <input type="date" id="fechaEmision" required>
+    </div>
+
     <button type="submit" id="generateBtn">Generar Certificado</button>
   </form>
 </div>
@@ -75,13 +120,20 @@
 </footer>
 
 <script>
+/* ✅ URL del Worker (proxy con CORS + JSON) */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
+
+/* Utilidad mínima de validación */
+function required(v){ return v !== null && v !== undefined && String(v).trim() !== ""; }
 
 document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+
   const datos = {
-    // numeroTramite:  ❌ ya no lo envíes, lo asigna el servidor
+    // numeroTramite: lo asigna el servidor
     evento: document.getElementById("evento").value.trim(),
     presentadoPor: document.getElementById("presentadoPor").value.trim(),
     cedula: document.getElementById("cedula").value.trim(),
@@ -96,24 +148,34 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
     fechaEmision: document.getElementById("fechaEmision").value
   };
 
+  // Validación rápida en el front (evita POST vacíos que luego dividirían filas)
+  const oblig = ["evento","presentadoPor","cedula","lugar","ciudad","provincia","fechaEvento","horaInicio","horaFin","aforo","estado","fechaEmision"];
+  const faltantes = oblig.filter(k => !required(datos[k]));
+  if (faltantes.length) {
+    btn.disabled = false;
+    await Swal.fire("Completa los campos", "Faltan: " + faltantes.join(", "), "warning");
+    return;
+  }
+
   const confirm = await Swal.fire({
-    title: 'Confirmar',
-    text: `Se generará un nuevo número de trámite automáticamente.`,
-    icon: 'question',
+    title: "Confirmar",
+    text: "Se generará un nuevo número de trámite automáticamente.",
+    icon: "question",
     showCancelButton: true,
-    confirmButtonText: 'Generar',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: "Generar",
+    cancelButtonText: "Cancelar"
   });
-  if (!confirm.isConfirmed) return;
+  if (!confirm.isConfirmed) { btn.disabled = false; return; }
 
   Swal.fire({
-    title: `Generando certificado`,
+    title: "Generando certificado",
     html: "Por favor, espera…",
     allowOutsideClick: false,
     didOpen: () => Swal.showLoading()
   });
 
   try {
+    // Enviar como x-www-form-urlencoded
     const params = new URLSearchParams();
     Object.entries(datos).forEach(([k, v]) => params.append(k, v));
 
@@ -124,24 +186,26 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
     });
 
     const payload = await res.json();
+    console.log("Respuesta backend:", payload);
+
     if (payload && payload.status === "OK") {
+      const numero = payload.numeroTramite || payload.numero || payload.nro || "(sin número)";
       Swal.close();
-      await Swal.fire("Éxito", `Trámite ${payload.numeroTramite} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
+      await Swal.fire("Éxito", `Trámite ${numero} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
       document.getElementById("formulario").reset();
       if (payload.pdf) window.open(payload.pdf, "_blank");
-      return;
+    } else {
+      const msg = (payload && (payload.message || payload.error)) || "Respuesta inesperada del servidor";
+      throw new Error(msg);
     }
-
-    throw new Error(payload && payload.message ? payload.message : "Respuesta inesperada");
-
   } catch (err) {
-    console.error(err);
+    console.error("Error total:", err);
     Swal.close();
-    Swal.fire("Error", "Hubo un problema al guardar/generar el PDF:\n" + (err.message || err), "error");
+    await Swal.fire("Error", (err && err.message) ? err.message : "Hubo un problema al guardar/generar el PDF", "error");
+  } finally {
+    btn.disabled = false;
   }
 });
 </script>
-
 </body>
 </html>
-
