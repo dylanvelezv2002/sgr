@@ -11,14 +11,14 @@
     body { background-color: #f4f6f9; color: #333; padding-bottom: 70px; }
     header { background: #2F338F; color: white; text-align: center; padding: 1.5rem 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
     header img { max-height: 70px; display: block; margin: 0 auto 0.5rem; }
-    header h1 { font-size: 1.4rem; font-weight: bold; }
+    header h1 { font-size: 1.8rem; font-weight: bold; }
     header p { font-size: 0.9rem; opacity: 0.9; }
-    .container { max-width: 1000px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .container { max-width: 1000px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     h2 { text-align: center; color: #2F338F; font-size: 1.6rem; margin-bottom: 1rem; }
-    .hint { background:#f2f4ff; border:1px solid #e5e8ff; color:#2F338F; padding:.75rem 1rem; border-radius:10px; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
+    .hint { background:#f2f4ff; border:1px solid #e5e8ff; color:#2F338F; padding:.75rem 1rem; border-radius:12px; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
     .hint small { opacity:.8; }
     label { font-size: 0.95rem; color: #555; margin-bottom: 4px; display: block; }
-    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s; }
     input:focus, select:focus { border-color: #2F338F; outline: none; }
     button { background-color: #2F338F; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.3s ease; }
     button:hover { background-color: #24286a; }
@@ -47,7 +47,7 @@
       <div id="previewNumero"><strong>Próximo N° de trámite:</strong> <span>consultando…</span></div>
       <small>El número final lo asigna el servidor al guardar.</small>
     </div>
-    <button type="button" id="refreshPreview" style="width:auto;padding:.5rem .8rem;">Actualizar</button>
+    <button type="button" id="refreshPreview" style="width:auto;padding:.5rem .8rem;border-radius:10px;">Actualizar</button>
   </div>
 
   <form id="formulario" autocomplete="off" novalidate>
@@ -129,13 +129,10 @@
 </footer>
 
 <script>
-/* ✅ URL del Worker (proxy a tu Apps Script gs-v3) */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
-
-/* Utilidad */
 const required = v => v !== null && v !== undefined && String(v).trim() !== "";
 
-/* --------- PREVIEW DEL SIGUIENTE NÚMERO --------- */
+/* Preview del siguiente número */
 async function cargarPreview() {
   const el = document.querySelector("#previewNumero span");
   try {
@@ -151,7 +148,7 @@ async function cargarPreview() {
 document.getElementById("refreshPreview").addEventListener("click", cargarPreview);
 document.addEventListener("DOMContentLoaded", cargarPreview);
 
-/* ----------------- ENVÍO DEL FORMULARIO ----------------- */
+/* Envío del formulario */
 document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -159,7 +156,6 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   btn.disabled = true;
 
   const datos = {
-    // ⚠️ No enviamos numeroTramite: lo asigna el servidor
     evento: document.getElementById("evento").value.trim(),
     presentadoPor: document.getElementById("presentadoPor").value.trim(),
     cedula: document.getElementById("cedula").value.trim(),
@@ -174,7 +170,6 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
     fechaEmision: document.getElementById("fechaEmision").value
   };
 
-  // Validación rápida
   const oblig = ["evento","presentadoPor","cedula","lugar","ciudad","provincia","fechaEvento","horaInicio","horaFin","aforo","estado","fechaEmision"];
   const faltantes = oblig.filter(k => !required(datos[k]));
   if (faltantes.length) {
@@ -201,7 +196,6 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   });
 
   try {
-    // Enviar como x-www-form-urlencoded
     const params = new URLSearchParams();
     Object.entries(datos).forEach(([k, v]) => params.append(k, v));
 
@@ -220,8 +214,7 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
       await Swal.fire("Éxito", `Trámite ${numero} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
       document.getElementById("formulario").reset();
       if (payload.pdf) window.open(payload.pdf, "_blank");
-      // refresca el preview para el siguiente
-      cargarPreview();
+      cargarPreview(); // actualizar el siguiente número
     } else {
       const msg = (payload && (payload.message || payload.error)) || "Respuesta inesperada del servidor";
       throw new Error(msg);
@@ -237,3 +230,4 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
 </script>
 </body>
 </html>
+
