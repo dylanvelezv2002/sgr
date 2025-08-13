@@ -75,45 +75,13 @@
 </footer>
 
 <script>
-/** ✅ Usa siempre el Worker para CORS + JSON */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
-
-/** YYYY-MM-DD → “10 de agosto de 2025” (si la necesitas más adelante) */
-function formatearFechaLarga(iso) {
-  if (!iso) return "";
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("es-EC", { day: "numeric", month: "long", year: "numeric" });
-}
-
-/** Pide el último número (JSON: {last}) y calcula el siguiente */
-async function obtenerNumeroTramite() {
-  console.log("🔄 Solicitando último número de trámite vía Worker...");
-  const resp = await fetch(`${workerURL}?action=last`, { method: "GET" });
-  const data = await resp.json();          // 👈 ahora sí, JSON siempre
-  const ultimo = (data && data.last) ? String(data.last) : "0";
-  console.log("📄 Último:", ultimo);
-
-  const year = new Date().getFullYear();
-  let siguiente;
-  if (!ultimo || ultimo === "0") {
-    siguiente = `CZ5-8-G-${year}-0001`;
-  } else {
-    const partes = ultimo.split("-");
-    const anioUltimo = partes[3];
-    let num = parseInt(partes[4], 10);
-    if (anioUltimo !== String(year)) num = 0;
-    siguiente = `CZ5-8-G-${year}-${String(num + 1).padStart(4, '0')}`;
-  }
-  console.log("✅ Siguiente número:", siguiente);
-  return siguiente;
-}
 
 document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
-  console.log("📝 Enviando formulario...");
 
   const datos = {
-    numeroTramite: await obtenerNumeroTramite(),
+    // numeroTramite:  ❌ ya no lo envíes, lo asigna el servidor
     evento: document.getElementById("evento").value.trim(),
     presentadoPor: document.getElementById("presentadoPor").value.trim(),
     cedula: document.getElementById("cedula").value.trim(),
@@ -127,11 +95,10 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
     estado: document.getElementById("estado").value,
     fechaEmision: document.getElementById("fechaEmision").value
   };
-  console.log("📦 Datos preparados:", datos);
 
   const confirm = await Swal.fire({
     title: 'Confirmar',
-    text: `Se generará el trámite: ${datos.numeroTramite}`,
+    text: `Se generará un nuevo número de trámite automáticamente.`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Generar',
@@ -140,48 +107,41 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   if (!confirm.isConfirmed) return;
 
   Swal.fire({
-    title: `Generando nuevo certificado\n${datos.numeroTramite}`,
+    title: `Generando certificado`,
     html: "Por favor, espera…",
     allowOutsideClick: false,
     didOpen: () => Swal.showLoading()
   });
 
   try {
-    // Enviar como x-www-form-urlencoded
     const params = new URLSearchParams();
     Object.entries(datos).forEach(([k, v]) => params.append(k, v));
 
-    console.log("📤 POST → Worker (x-www-form-urlencoded):", params.toString());
     const res = await fetch(workerURL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: params.toString()
     });
 
-    // El Worker devuelve application/json SIEMPRE
     const payload = await res.json();
-    console.log("✅ Payload:", payload);
-
     if (payload && payload.status === "OK") {
       Swal.close();
-      await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
+      await Swal.fire("Éxito", `Trámite ${payload.numeroTramite} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
       document.getElementById("formulario").reset();
-      if (payload.pdf) {
-        console.log("📄 Abriendo PDF:", payload.pdf);
-        window.open(payload.pdf, "_blank");
-      }
+      if (payload.pdf) window.open(payload.pdf, "_blank");
       return;
     }
 
-    console.error("❌ Respuesta inesperada:", payload);
-    throw new Error("Respuesta inesperada del servidor");
+    throw new Error(payload && payload.message ? payload.message : "Respuesta inesperada");
 
   } catch (err) {
-    console.error("🔥 Error total:", err);
+    console.error(err);
     Swal.close();
-    Swal.fire("Error", "Hubo un problema al guardar/generar el PDF", "error");
+    Swal.fire("Error", "Hubo un problema al guardar/generar el PDF:\n" + (err.message || err), "error");
   }
 });
 </script>
+
 </body>
 </html>
+
