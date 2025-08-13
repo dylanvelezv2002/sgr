@@ -61,11 +61,11 @@
   <div class="toolbar">
     <input id="q" placeholder="Buscar (nº trámite, evento, solicitante, ciudad…)" style="flex:1; min-width:220px;">
     <select id="orderBy">
-      <option value="FechaEmision">Fecha de emisión</option>
-      <option value="NumeroTramite" selected>Nº Trámite</option>
-      <option value="Evento">Evento</option>
-      <option value="PresentadoPor">Presentado por</option>
-      <option value="Estado">Estado</option>
+      <option value="N° de Trámite" selected>N° de Trámite</option>
+      <option value="Fecha de Emisión">Fecha de Emisión</option>
+      <option value="Evento Deportivo">Evento</option>
+      <option value="Presentado por">Presentado por</option>
+      <option value="Estado del Trámite">Estado</option>
     </select>
     <select id="dir"><option value="desc" selected>Desc</option><option value="asc">Asc</option></select>
     <select id="ps"><option>10</option><option selected>20</option><option>50</option><option>100</option></select>
@@ -77,11 +77,11 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Nº Trámite</th>
+          <th>N° de Trámite</th>
           <th>Evento</th>
           <th>Presentado por</th>
           <th>Ciudad</th>
-          <th>Fecha</th>
+          <th>Fecha Emisión</th>
           <th>Estado</th>
           <th>PDF</th>
           <th>Acciones</th>
@@ -98,11 +98,12 @@
       <div id="editForm" style="display:none;">
         <div class="row">
           <div>
-            <label>Estado</label>
+            <label>Estado del Trámite</label>
             <select id="f_Estado">
               <option value="">(vacío)</option>
               <option value="Aprobado">Aprobado</option>
               <option value="Rechazado">Rechazado</option>
+              <option value="Pendiente">Pendiente</option>
             </select>
           </div>
           <div>
@@ -112,49 +113,54 @@
         </div>
         <div class="row">
           <div>
-            <label>Observaciones</label>
+            <label>Observaciones (si existe)</label>
             <input id="f_Observaciones" placeholder="Observaciones internas">
           </div>
           <div>
-            <label>PDF (URL)</label>
+            <label>URL PDF (si existe)</label>
             <input id="f_PdfUrl" placeholder="https://...">
           </div>
         </div>
         <div class="row">
           <button id="save">Guardar cambios</button>
-          <button id="regen">Re-generar PDF</button>
+          <button id="regen">Re-generar PDF (opcional)</button>
         </div>
       </div>
     </div>
 
     <div class="card section">
-      <h2>Ajustes</h2>
+      <h2>Ajustes del Panel</h2>
       <div class="row">
         <div>
-          <label>Prefijo Nº Trámite</label>
-          <input id="c_prefijo" placeholder="UPREA-">
+          <label>Formato fecha (vista)</label>
+          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy'>
         </div>
         <div>
-          <label>Método numeración</label>
-          <select id="c_metodo">
-            <option value="persistente">Persistente (contador)</option>
-            <option value="maximo">Basado en máximo</option>
+          <label>Orden por defecto</label>
+          <select id="c_orden_por">
+            <option>N° de Trámite</option>
+            <option>Fecha de Emisión</option>
           </select>
         </div>
       </div>
       <div class="row">
         <div>
-          <label>Reset anual</label>
-          <select id="c_reset"><option value="si">Sí</option><option value="no">No</option></select>
+          <label>Dirección</label>
+          <select id="c_orden_dir"><option value="asc">Asc</option><option value="desc">Desc</option></select>
         </div>
         <div>
-          <label>Formato fecha certificado</label>
-          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy'>
+          <label>ID Plantilla Docs (opcional)</label>
+          <input id="c_tpl" placeholder="1AbC… (doc_template_id)">
         </div>
       </div>
       <div class="row">
-        <button id="saveCfg">Guardar ajustes</button>
-        <button id="previewNext">Previsualizar siguiente Nº</button>
+        <div>
+          <label>ID Carpeta PDFs (opcional)</label>
+          <input id="c_folder" placeholder="1FOLDER… (pdf_folder_id)">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button id="saveCfg">Guardar ajustes</button>
+        </div>
       </div>
       <div class="muted" id="cfgMsg"></div>
     </div>
@@ -166,32 +172,7 @@
 </footer>
 
 <script>
-const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
-const ADMIN_TOKEN = localStorage.getItem('ADMIN_TOKEN') || '';
-
-function askTokenOnce(){
-  if (!ADMIN_TOKEN){
-    Swal.fire({
-      title:"Acceso",
-      input:"password",
-      inputLabel:"Token de administrador",
-      inputPlaceholder:"Ingresa el token",
-      inputAttributes:{ autocapitalize:"off", autocorrect:"off" },
-      confirmButtonText:"Entrar",
-      allowOutsideClick:false,
-      preConfirm:(v)=> v && v.trim()
-    }).then(res=>{
-      if(res.isConfirmed){
-        localStorage.setItem('ADMIN_TOKEN', res.value.trim());
-        location.reload();
-      }
-    });
-  }
-}
-
-function hdr(){ return { "Authorization":"Bearer " + (localStorage.getItem('ADMIN_TOKEN')||'') }; }
-
-const state = { page:1, ps:20, q:'', orderBy:'NumeroTramite', dir:'desc', selected:null };
+const state = { page:1, ps:20, q:'', orderBy:'N° de Trámite', dir:'desc', selected:null, pdfHeader:null };
 
 document.getElementById('ps').addEventListener('change', ()=>{ state.ps=+val('ps'); load(); });
 document.getElementById('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
@@ -202,174 +183,123 @@ document.getElementById('refresh').addEventListener('click', load);
 document.getElementById('save').addEventListener('click', saveEdit);
 document.getElementById('regen').addEventListener('click', regen);
 
-document.getElementById('saveCfg').addEventListener('click', saveCfg);
-document.getElementById('previewNext').addEventListener('click', previewNext);
-
 function val(id){ return document.getElementById(id).value; }
-function setVal(id,v){ document.getElementById(id).value = v; }
+function setVal(id,v){ document.getElementById(id).value = v??''; }
 function byId(id){ return document.getElementById(id); }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
 function badge(s){
   const t = (s||'').toLowerCase();
-  if(t==='aprobado') return `<span class="pill ok">Aprobado</span>`;
-  if(t==='rechazado') return `<span class="pill bad">Rechazado</span>`;
-  if(t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
+  if (t==='aprobado') return `<span class="pill ok">Aprobado</span>`;
+  if (t==='rechazado') return `<span class="pill bad">Rechazado</span>`;
+  if (t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
   return `<span class="pill">${s||''}</span>`;
 }
-function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+function safe(v){ return (v===undefined||v===null)?'':String(v); }
 
-async function load(){
-  try{
-    const url = new URL(workerURL);
-    url.searchParams.set('action','list');
-    url.searchParams.set('page', state.page);
-    url.searchParams.set('pageSize', state.ps);
-    url.searchParams.set('search', state.q);
-    url.searchParams.set('orderBy', state.orderBy);
-    url.searchParams.set('orderDir', state.dir);
-
-    const res = await fetch(url, { headers: hdr() });
-    if (res.status===401){ askTokenOnce(); return; }
-    const data = await res.json();
-
-    // KPIs
-    byId('k_total').textContent = data.stats.total;
-    byId('k_pend').textContent = data.stats.pendientes;
-    byId('k_ok').textContent   = data.stats.aprobados;
-    byId('k_bad').textContent  = data.stats.rechazados;
-
-    // Tabla
-    const tb = byId('tbody'); tb.innerHTML='';
-    (data.rows||[]).forEach(r=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.__row ?? ''}</td>
-        <td>${r.NumeroTramite||''}</td>
-        <td>${r.Evento||''}</td>
-        <td>${r.PresentadoPor||''}</td>
-        <td>${r.Ciudad||''}</td>
-        <td>${r.FechaEmision||r.Fecha||''}</td>
-        <td>${badge(r.Estado||'')}</td>
-        <td>${r.PdfUrl?`<a href="${r.PdfUrl}" target="_blank">Abrir</a>`:''}</td>
-        <td class="actions">
-          <button onclick='selectRow(${JSON.stringify(r.__row)})'>Editar</button>
-        </td>
-      `;
-      tb.appendChild(tr);
-    });
-
-  }catch(e){
-    console.error(e);
-    Swal.fire("Error","No se pudo cargar la lista","error");
-  }
+function load(){
+  google.script.run.withSuccessHandler(render).api_list({
+    page: state.page, pageSize: state.ps, search: state.q, orderBy: state.orderBy, orderDir: state.dir
+  });
 }
 
-async function selectRow(row){
-  state.selected=row;
-  byId('editInfo').style.display='none';
-  byId('editForm').style.display='block';
-  try{
-    const url = new URL(workerURL);
-    url.searchParams.set('action','get');
-    url.searchParams.set('row', row);
-    const res = await fetch(url, { headers: hdr() });
-    if (res.status===401){ askTokenOnce(); return; }
-    const r = await res.json();
-    setVal('f_Estado', r.Estado||'');
-    setVal('f_FechaEmision', (r.FechaEmisionISO||'').slice(0,10));
-    setVal('f_Observaciones', r.Observaciones||'');
-    setVal('f_PdfUrl', r.PdfUrl||'');
-  }catch(e){
-    console.error(e);
-    Swal.fire("Error","No se pudo abrir el registro","error");
-  }
+function render(res){
+  byId('k_total').textContent = res.stats.total;
+  byId('k_pend').textContent  = res.stats.pendientes;
+  byId('k_ok').textContent    = res.stats.aprobados;
+  byId('k_bad').textContent   = res.stats.rechazados;
+
+  const tb = byId('tbody'); tb.innerHTML='';
+  (res.rows||[]).forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.__row??''}</td>
+      <td>${safe(r['N° de Trámite'])}</td>
+      <td>${safe(r['Evento Deportivo'])}</td>
+      <td>${safe(r['Presentado por'])}</td>
+      <td>${safe(r['Ciudad'])}</td>
+      <td>${safe(r['Fecha de Emisión']||'')}</td>
+      <td>${badge(r['Estado del Trámite']||'')}</td>
+      <td>${
+        r.PDF ? `<a href="${r.PDF}" target="_blank">Abrir</a>` :
+        r['URL PDF'] ? `<a href="${r['URL PDF']}" target="_blank">Abrir</a>` :
+        r.PdfUrl ? `<a href="${r.PdfUrl}" target="_blank">Abrir</a>` : ''
+      }</td>
+      <td class="actions"><button onclick="openRow(${r.__row})">Editar</button></td>
+    `;
+    tb.appendChild(tr);
+  });
 }
 
-async function saveEdit(){
+function openRow(row){
+  google.script.run.withSuccessHandler(rec=>{
+    state.selected = rec.__row;
+    state.pdfHeader = rec._pdfHeader; // puede ser null
+    byId('editInfo').style.display='none';
+    byId('editForm').style.display='block';
+    setVal('f_Estado', rec['Estado del Trámite']||'');
+    setVal('f_FechaEmision', (rec.FechaEmisionISO||'').slice(0,10));
+    setVal('f_Observaciones', rec.Observaciones||'');
+    const pdfVal = rec.PDF || rec['URL PDF'] || rec.PdfUrl || '';
+    setVal('f_PdfUrl', pdfVal);
+    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  }).api_get(row);
+}
+
+function saveEdit(){
   if(!state.selected) return;
-  const payload = {
-    row: state.selected,
-    updates: {
-      Estado: val('f_Estado'),
-      FechaEmision: val('f_FechaEmision'),
-      Observaciones: val('f_Observaciones'),
-      PdfUrl: val('f_PdfUrl')
-    }
+  const updates = {
+    'Estado del Trámite': val('f_Estado'),
+    'Fecha de Emisión': val('f_FechaEmision'),
+    'Observaciones': val('f_Observaciones'),
   };
-  try{
-    const res = await fetch(workerURL+'?action=update', {
-      method:'POST',
-      headers: { ...hdr(), 'Content-Type':'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.status===401){ askTokenOnce(); return; }
-    const data = await res.json();
-    if(data.ok){
-      Swal.fire("Guardado","Cambios aplicados","success");
-      load();
-    }else{
-      throw new Error(data.message||"Error al guardar");
-    }
-  }catch(e){
-    console.error(e);
-    Swal.fire("Error", e.message || "No se pudo guardar","error");
-  }
+  // Solo si existe columna PDF se envía:
+  if (state.pdfHeader) updates[state.pdfHeader] = val('f_PdfUrl');
+
+  google.script.run.withSuccessHandler(()=>{
+    Swal.fire("Guardado","Cambios aplicados","success");
+    load();
+  }).api_update({ __row: state.selected, updates });
 }
 
-async function regen(){
+function regen(){
   if(!state.selected) return;
-  try{
-    const res = await fetch(workerURL+'?action=regen', {
-      method:'POST',
-      headers: { ...hdr(), 'Content-Type':'application/json' },
-      body: JSON.stringify({ row: state.selected })
-    });
-    if (res.status===401){ askTokenOnce(); return; }
-    const data = await res.json();
-    if(data.ok){
-      Swal.fire("Listo", data.message || "PDF re-generado","success");
+  google.script.run.withSuccessHandler(res=>{
+    if(res.ok){
+      const msg = res.pdf ? `PDF listo: <a href="${res.pdf}" target="_blank">abrir</a>` : 'PDF re-generado';
+      Swal.fire({ title:"Listo", html:msg, icon:"success" });
       load();
     }else{
-      throw new Error(data.message||"No se pudo generar");
+      Swal.fire("Atención", res.message || "Configura doc_template_id en Admin_Config", "info");
     }
-  }catch(e){
-    console.error(e);
-    Swal.fire("Error", e.message || "No se pudo generar el PDF","error");
-  }
+  }).api_regenerar(state.selected);
 }
 
-/*** Ajustes ***/
-async function loadCfg(){
-  try{
-    const res = await fetch(workerURL+'?action=config_get', { headers: hdr() });
-    if (res.status===401){ askTokenOnce(); return; }
-    const c = await res.json();
-    setVal('c_prefijo', c.prefijo_tramite||'UPREA-');
-    setVal('c_metodo', c.metodo_numeracion||'persistente');
-    setVal('c_reset',  c.reset_anual||'si');
-    setVal('c_formato',c.formato_fecha||'dd "de" mmmm "de" yyyy');
-  }catch(e){ console.warn(e); }
-}
-async function saveCfg(){
+/*** Ajustes del Panel ***/
+document.addEventListener('DOMContentLoaded', ()=>{
+  google.script.run.withSuccessHandler(cfg=>{
+    setVal('c_formato', cfg.formato_fecha_cert||'dd "de" mmmm "de" yyyy');
+    setVal('c_orden_por', cfg.orden_por||'N° de Trámite');
+    setVal('c_orden_dir', cfg.orden_dir||'desc');
+    setVal('c_tpl', cfg.doc_template_id||'');
+    setVal('c_folder', cfg.pdf_folder_id||'');
+  }).api_config_get();
+  load();
+});
+
+document.getElementById('saveCfg').addEventListener('click', ()=>{
   const cfg = {
-    prefijo_tramite: val('c_prefijo'),
-    metodo_numeracion: val('c_metodo'),
-    reset_anual: val('c_reset'),
-    formato_fecha: val('c_formato')
+    formato_fecha_cert: val('c_formato'),
+    orden_por: val('c_orden_por'),
+    orden_dir: val('c_orden_dir'),
+    doc_template_id: val('c_tpl'),
+    pdf_folder_id: val('c_folder')
   };
-  try{
-    const res = await fetch(workerURL+'?action=config_save', {
-      method:'POST',
-      headers: { ...hdr(), 'Content-Type':'application/json' },
-      body: JSON.stringify(cfg)
-    });
-    if (res.status===401){ askTokenOnce(); return; }
-    const data = await res.json();
-    if(data.ok){
-      byId('cfgMsg').textContent = 'Ajustes guardados.';
-      setTimeout(()=> byId('cfgMsg').textContent='', 2500);
-    }else{ throw new Error("No se guardó"); }
-  }catch(e){
-    console.error(e);
-    Swal.fire("Error","No se pudieron guardar los ajustes","error");
-  }
-}
+  google.script.run.withSuccessHandler(()=>{
+    byId('cfgMsg').textContent = 'Ajustes guardados.';
+    setTimeout(()=> byId('cfgMsg').textContent='', 2500);
+  }).api_config_save(cfg);
+});
+</script>
+</body>
+</html>
+
