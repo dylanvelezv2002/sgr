@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel de Administración</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --radius: 14px; }
+    body { font-family: system-ui, Arial; margin: 0; background:#f6f7fb; color:#111; }
+    header { padding: 16px 24px; background: #111827; color:#fff; display:flex; align-items:center; justify-content:space-between; }
+    header h1 { margin:0; font-size: 18px; font-weight:600; }
+    .tag { font-size:12px; opacity:.85; }
+    .wrap { padding: 18px 24px; max-width:1200px; margin:0 auto; }
+    .kpis { display:grid; grid-template-columns: repeat(4, minmax(160px,1fr)); gap:12px; margin-bottom:16px; }
+    .card { background:#fff; border-radius: var(--radius); box-shadow: 0 6px 20px rgba(0,0,0,.06); padding:14px; }
+    .card h3 { margin:0 0 6px; font-size:14px; color:#4b5563; font-weight:600; }
+    .card .num { font-size:22px; font-weight:700; }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
+    .toolbar input, .toolbar select, .toolbar button, .panel button, .panel input { padding:10px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; }
+    .toolbar button, .panel button { background:#111827; color:#fff; border:0; cursor:pointer; }
+    .grid { overflow:auto; border-radius: var(--radius); }
+    table { width:100%; border-collapse: collapse; background:#fff; }
+    th, td { border-bottom:1px solid #f0f1f4; padding:10px; font-size:14px; }
+    th { text-align:left; background:#f9fafb; position:sticky; top:0; z-index:1; }
+    tr:hover td { background:#fafafa; }
+    .row-actions { display:flex; gap:8px; }
+    .pill { padding:4px 8px; border-radius:999px; font-size:12px; }
+    .ok { background:#e8fff0; color:#065f46; }
+    .warn { background:#fff7ed; color:#92400e; }
+    .bad { background:#fee2e2; color:#991b1b; }
+    .panel { margin-top:16px; display:grid; grid-template-columns: 2fr 1fr; gap:16px; }
+    .section h2 { margin:0 0 8px; font-size:16px; }
+    .section .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px; }
+    .muted { font-size:12px; color:#6b7280; }
+    .footer { margin:20px 0 10px; font-size:12px; color:#6b7280; text-align:center; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Panel de Administración</h1>
+  <div class="tag" id="userTag">...</div>
+</header>
+
+<div class="wrap">
+  <div class="kpis">
+    <div class="card"><h3>Total</h3><div class="num" id="k_total">-</div></div>
+    <div class="card"><h3>Pendientes</h3><div class="num" id="k_pend">-</div></div>
+    <div class="card"><h3>Cumple</h3><div class="num" id="k_ok">-</div></div>
+    <div class="card"><h3>No cumple</h3><div class="num" id="k_bad">-</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" placeholder="Buscar (trámite, solicitante, servicio...)" />
+    <select id="orderBy">
+      <option value="NumeroTramite">Ordenar por Nº Trámite</option>
+      <option value="FechaSolicitud">Ordenar por Fecha Solicitud</option>
+      <option value="Cumplimiento">Ordenar por Cumplimiento</option>
+      <option value="Solicitante">Ordenar por Solicitante</option>
+    </select>
+    <select id="orderDir">
+      <option value="desc">Desc</option>
+      <option value="asc">Asc</option>
+    </select>
+    <select id="pageSize">
+      <option>10</option><option selected>20</option><option>50</option><option>100</option>
+    </select>
+    <button id="btnRefresh">Actualizar</button>
+  </div>
+
+  <div class="grid card">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Número</th>
+          <th>Fecha Solicitud</th>
+          <th>Fecha Entrega</th>
+          <th>Trámite</th>
+          <th>Solicitante</th>
+          <th>Cumplimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="card section">
+      <h2>Editar registro</h2>
+      <div id="editInfo" class="muted">Selecciona una fila para editar.</div>
+      <div id="editForm" style="display:none;">
+        <div class="row">
+          <div>
+            <label>Técnico</label>
+            <input id="f_Tecnico" />
+          </div>
+          <div>
+            <label>Fecha Entrega (dd/mm/yyyy)</label>
+            <input id="f_FechaEntrega" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Cumplimiento</label>
+            <select id="f_Cumplimiento">
+              <option value="">(vacío)</option>
+              <option value="Cumple">Cumple</option>
+              <option value="No cumple">No cumple</option>
+              <option value="Pendiente">Pendiente</option>
+            </select>
+          </div>
+          <div>
+            <label>Observaciones</label>
+            <input id="f_Observaciones" />
+          </div>
+        </div>
+        <div class="row">
+          <button id="btnSaveEdit">Guardar cambios</button>
+          <button id="btnRegen">Re-generar certificado</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section">
+      <h2>Ajustes</h2>
+      <div class="row">
+        <div>
+          <label>Prefijo Nº Trámite</label>
+          <input id="c_prefijo" />
+        </div>
+        <div>
+          <label>Método numeración</label>
+          <select id="c_metodo">
+            <option value="persistente">Persistente</option>
+            <option value="maximo">Basado en máximo</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Reset anual</label>
+          <select id="c_reset">
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div>
+          <label>Formato de fecha</label>
+          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy' />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnSaveCfg">Guardar ajustes</button>
+        <button id="btnPreviewN">Previsualizar siguiente Nº</button>
+      </div>
+      <div class="muted" id="cfgMsg"></div>
+    </div>
+  </div>
+
+  <div class="footer">Hecho con Google Apps Script · Admin Panel</div>
+</div>
+
+<script>
+let state = { page:1, pageSize:20, search:'', orderBy:'NumeroTramite', orderDir:'desc', selectedRow:null, config:{} };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Sesión
+  google.script.run.withSuccessHandler(s=>{
+    document.getElementById('userTag').textContent = s.allowed ? ('Usuario: '+s.email) : 'Acceso denegado';
+  }).api_getSession();
+
+  // Controles
+  document.getElementById('pageSize').addEventListener('change', ()=>{ state.pageSize=+val('pageSize'); load(); });
+  document.getElementById('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
+  document.getElementById('orderDir').addEventListener('change', ()=>{ state.orderDir=val('orderDir'); load(); });
+  document.getElementById('search').addEventListener('input', debounce(()=>{ state.search=val('search'); state.page=1; load(); }, 300));
+  document.getElementById('btnRefresh').addEventListener('click', ()=> load());
+
+  // Edición
+  document.getElementById('btnSaveEdit').addEventListener('click', saveEdit);
+  document.getElementById('btnRegen').addEventListener('click', regen);
+
+  // Config
+  document.getElementById('btnSaveCfg').addEventListener('click', saveCfg);
+  document.getElementById('btnPreviewN').addEventListener('click', previewNext);
+
+  // Cargar Config
+  google.script.run.withSuccessHandler(cfg=>{
+    state.config = cfg || {};
+    setVal('c_prefijo', cfg.prefijo_tramite||'UPREA-');
+    setVal('c_metodo', cfg.metodo_numeracion||'persistente');
+    setVal('c_reset',  cfg.reset_anual||'si');
+    setVal('c_formato', cfg.formato_fecha||'dd "de" mmmm "de" yyyy');
+  }).api_getConfig();
+
+  load();
+});
+
+function load(){
+  google.script.run.withSuccessHandler(renderTable).api_getStatsAndPage({
+    page: state.page,
+    pageSize: state.pageSize,
+    search: state.search,
+    orderBy: state.orderBy,
+    orderDir: state.orderDir
+  });
+}
+
+function renderTable(res){
+  // KPIs
+  byId('k_total').textContent = res.stats.total;
+  byId('k_pend').textContent = res.stats.pendientes;
+  byId('k_ok').textContent = res.stats.cumple;
+  byId('k_bad').textContent = res.stats.nocumple;
+
+  const tbody = byId('tbody');
+  tbody.innerHTML = '';
+  res.rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.__row}</td>
+      <td>${safe(r.NumeroTramite)}</td>
+      <td>${safe(r.FechaSolicitud)}</td>
+      <td>${safe(r.FechaEntrega||'')}</td>
+      <td>${safe(r.Tramite||'')}</td>
+      <td>${safe(r.Solicitante||'')}</td>
+      <td>${badge(r.Cumplimiento||'')}</td>
+      <td class="row-actions">
+        <button data-row="${r.__row}" onclick="selectRow(${r.__row})">Editar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function selectRow(rowNum){
+  google.script.run.withSuccessHandler(rec=>{
+    state.selectedRow = rec.__row;
+    byId('editInfo').style.display = 'none';
+    byId('editForm').style.display = 'block';
+    setVal('f_Tecnico', rec.Tecnico||'');
+    setVal('f_FechaEntrega', toDMY(rec.FechaEntrega));
+    setVal('f_Cumplimiento', rec.Cumplimiento||'');
+    setVal('f_Observaciones', rec.Observaciones||'');
+    // scroll suave
+    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  }).api_getRecordByRow(rowNum);
+}
+
+function saveEdit(){
+  if(!state.selectedRow) return;
+  const updates = {
+    Tecnico: val('f_Tecnico'),
+    FechaEntrega: val('f_FechaEntrega'),
+    Cumplimiento: val('f_Cumplimiento'),
+    Observaciones: val('f_Observaciones')
+  };
+  google.script.run.withSuccessHandler(()=>{
+    toast('Guardado');
+    load();
+  }).api_updateRecord({ __row: state.selectedRow, updates });
+}
+
+function regen(){
+  if(!state.selectedRow) return;
+  google.script.run.withSuccessHandler(res=>{
+    toast(res.message || 'Listo');
+  }).api_regenerarCertificado(state.selectedRow);
+}
+
+/*** CONFIG ***/
+function saveCfg(){
+  const cfg = {
+    prefijo_tramite: val('c_prefijo'),
+    metodo_numeracion: val('c_metodo'),
+    reset_anual: val('c_reset'),
+    formato_fecha: val('c_formato')
+  };
+  google.script.run.withSuccessHandler(()=>{
+    byId('cfgMsg').textContent = 'Ajustes guardados.';
+    setTimeout(()=> byId('cfgMsg').textContent='', 2500);
+  }).api_saveConfig(cfg);
+}
+
+function previewNext(){
+  google.script.run.withSuccessHandler(n=>{
+    byId('cfgMsg').textContent = 'Siguiente Nº (preview): ' + n;
+    setTimeout(()=> byId('cfgMsg').textContent='', 4000);
+  }).api_previewNextNumero();
+}
+
+/*** HELPERS ***/
+function val(id){ return byId(id).value; }
+function setVal(id,v){ byId(id).value = v; }
+function byId(id){ return document.getElementById(id); }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+function safe(s){ return (s===undefined||s===null)?'':String(s); }
+function badge(s){
+  const t = String(s).toLowerCase();
+  if (t==='cumple') return `<span class="pill ok">Cumple</span>`;
+  if (t==='no cumple') return `<span class="pill bad">No cumple</span>`;
+  if (t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
+  return `<span class="pill">${safe(s)}</span>`;
+}
+function toDMY(v){
+  if(!v) return '';
+  // si viene como Date serial, Apps Script devuelve string/serial indistinto: mostramos tal cual si ya tiene "/"
+  const s = String(v);
+  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/.test(s)) return s;
+  try {
+    const d = new Date(s);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch(e){ return s; }
+}
+function toast(msg){
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.position='fixed'; el.style.bottom='24px'; el.style.right='24px';
+  el.style.background='#111827'; el.style.color='#fff'; el.style.padding='10px 14px';
+  el.style.borderRadius='10px'; el.style.boxShadow='0 8px 20px rgba(0,0,0,.2)';
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 2000);
+}
+</script>
+</body>
+</html>
