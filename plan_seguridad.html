@@ -120,86 +120,54 @@
 </footer>
 
 <script>
-/* ✅ URL del Worker (proxy con CORS + JSON) */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
 
-/* Utilidad mínima de validación */
 function required(v){ return v !== null && v !== undefined && String(v).trim() !== ""; }
 
 document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
-
   const btn = document.getElementById("generateBtn");
   btn.disabled = true;
 
   const datos = {
-    // numeroTramite: lo asigna el servidor
-    evento: document.getElementById("evento").value.trim(),
-    presentadoPor: document.getElementById("presentadoPor").value.trim(),
-    cedula: document.getElementById("cedula").value.trim(),
-    lugar: document.getElementById("lugar").value.trim(),
-    ciudad: document.getElementById("ciudad").value,
-    provincia: document.getElementById("provincia").value,
-    fechaEvento: document.getElementById("fechaEvento").value,
-    horaInicio: document.getElementById("horaInicio").value,
-    horaFin: document.getElementById("horaFin").value,
-    aforo: document.getElementById("aforo").value,
-    estado: document.getElementById("estado").value,
-    fechaEmision: document.getElementById("fechaEmision").value
+    evento: evento.value.trim(),
+    presentadoPor: presentadoPor.value.trim(),
+    cedula: cedula.value.trim(),
+    lugar: lugar.value.trim(),
+    ciudad: ciudad.value,
+    provincia: provincia.value,
+    fechaEvento: fechaEvento.value,
+    horaInicio: horaInicio.value,
+    horaFin: horaFin.value,
+    aforo: aforo.value,
+    estado: estado.value,
+    fechaEmision: fechaEmision.value
   };
 
-  // Validación rápida en el front (evita POST vacíos que luego dividirían filas)
   const oblig = ["evento","presentadoPor","cedula","lugar","ciudad","provincia","fechaEvento","horaInicio","horaFin","aforo","estado","fechaEmision"];
-  const faltantes = oblig.filter(k => !required(datos[k]));
-  if (faltantes.length) {
-    btn.disabled = false;
-    await Swal.fire("Completa los campos", "Faltan: " + faltantes.join(", "), "warning");
-    return;
-  }
+  const falt = oblig.filter(k => !required(datos[k]));
+  if (falt.length) { btn.disabled = false; return Swal.fire("Completa los campos", "Faltan: " + falt.join(", "), "warning"); }
 
-  const confirm = await Swal.fire({
-    title: "Confirmar",
-    text: "Se generará un nuevo número de trámite automáticamente.",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Generar",
-    cancelButtonText: "Cancelar"
-  });
-  if (!confirm.isConfirmed) { btn.disabled = false; return; }
+  const ok = await Swal.fire({title:"Confirmar", text:"Se generará un nuevo número de trámite automáticamente.", icon:"question", showCancelButton:true, confirmButtonText:"Generar", cancelButtonText:"Cancelar"});
+  if (!ok.isConfirmed) { btn.disabled = false; return; }
 
-  Swal.fire({
-    title: "Generando certificado",
-    html: "Por favor, espera…",
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
+  Swal.fire({ title:"Generando certificado", html:"Por favor, espera…", allowOutsideClick:false, didOpen: () => Swal.showLoading() });
 
   try {
-    // Enviar como x-www-form-urlencoded
-    const params = new URLSearchParams();
-    Object.entries(datos).forEach(([k, v]) => params.append(k, v));
-
-    const res = await fetch(workerURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: params.toString()
-    });
-
+    const params = new URLSearchParams(); Object.entries(datos).forEach(([k,v])=>params.append(k,v));
+    const res = await fetch(workerURL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body: params.toString() });
     const payload = await res.json();
-    console.log("Respuesta backend:", payload);
 
     if (payload && payload.status === "OK") {
-      const numero = payload.numeroTramite || payload.numero || payload.nro || "(sin número)";
+      const numero = payload.numeroTramite || "(sin número)";
       Swal.close();
       await Swal.fire("Éxito", `Trámite ${numero} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
-      document.getElementById("formulario").reset();
+      formulario.reset();
       if (payload.pdf) window.open(payload.pdf, "_blank");
     } else {
-      const msg = (payload && (payload.message || payload.error)) || "Respuesta inesperada del servidor";
-      throw new Error(msg);
+      throw new Error((payload && (payload.message || payload.error)) || "Respuesta inesperada");
     }
   } catch (err) {
-    console.error("Error total:", err);
     Swal.close();
     await Swal.fire("Error", (err && err.message) ? err.message : "Hubo un problema al guardar/generar el PDF", "error");
   } finally {
@@ -207,5 +175,7 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   }
 });
 </script>
+
 </body>
 </html>
+
