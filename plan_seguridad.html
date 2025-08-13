@@ -75,22 +75,23 @@
 </footer>
 
 <script>
-/** ✅ USA SIEMPRE EL WORKER para evitar CORS */
+/** ✅ Usa siempre el Worker para CORS + JSON */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
 
-/** Util: formatea YYYY-MM-DD → “10 de agosto de 2025” */
+/** YYYY-MM-DD → “10 de agosto de 2025” (si la necesitas más adelante) */
 function formatearFechaLarga(iso) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString("es-EC", { day: "numeric", month: "long", year: "numeric" });
 }
 
-/** Pide el último número y calcula el siguiente */
+/** Pide el último número (JSON: {last}) y calcula el siguiente */
 async function obtenerNumeroTramite() {
   console.log("🔄 Solicitando último número de trámite vía Worker...");
   const resp = await fetch(`${workerURL}?action=last`, { method: "GET" });
-  const ultimo = await resp.text();
-  console.log("📄 Último (raw):", ultimo);
+  const data = await resp.json();          // 👈 ahora sí, JSON siempre
+  const ultimo = (data && data.last) ? String(data.last) : "0";
+  console.log("📄 Último:", ultimo);
 
   const year = new Date().getFullYear();
   let siguiente;
@@ -128,82 +129,58 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   };
   console.log("📦 Datos preparados:", datos);
 
-  await Swal.fire({
+  const confirm = await Swal.fire({
     title: 'Confirmar',
     text: `Se generará el trámite: ${datos.numeroTramite}`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Generar',
     cancelButtonText: 'Cancelar'
-  }).then(async (r) => {
-    if (!r.isConfirmed) {
-      console.log("❌ Cancelado por el usuario");
+  });
+  if (!confirm.isConfirmed) return;
+
+  Swal.fire({
+    title: `Generando nuevo certificado\n${datos.numeroTramite}`,
+    html: "Por favor, espera…",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    // Enviar como x-www-form-urlencoded
+    const params = new URLSearchParams();
+    Object.entries(datos).forEach(([k, v]) => params.append(k, v));
+
+    console.log("📤 POST → Worker (x-www-form-urlencoded):", params.toString());
+    const res = await fetch(workerURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
+    });
+
+    // El Worker devuelve application/json SIEMPRE
+    const payload = await res.json();
+    console.log("✅ Payload:", payload);
+
+    if (payload && payload.status === "OK") {
+      Swal.close();
+      await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
+      document.getElementById("formulario").reset();
+      if (payload.pdf) {
+        console.log("📄 Abriendo PDF:", payload.pdf);
+        window.open(payload.pdf, "_blank");
+      }
       return;
     }
 
-    // Loader mientras guarda y genera el PDF en Apps Script
-    Swal.fire({
-      title: `Generando nuevo certificado\n${datos.numeroTramite}`,
-      html: "Por favor, espera…",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
-    });
+    console.error("❌ Respuesta inesperada:", payload);
+    throw new Error("Respuesta inesperada del servidor");
 
-    try {
-      // Enviar como x-www-form-urlencoded (lo que tu Worker espera reenviar)
-      const params = new URLSearchParams();
-      Object.entries(datos).forEach(([k, v]) => params.append(k, v));
-
-      console.log("📤 POST → Worker (x-www-form-urlencoded):", params.toString());
-      const res = await fetch(workerURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body: params.toString()
-      });
-
-      const raw = await res.text();
-      console.log("📥 Respuesta cruda:", raw);
-
-      let payload;
-      try {
-        payload = JSON.parse(raw);
-        console.log("✅ JSON parseado:", payload);
-      } catch (e) {
-        console.warn("⚠️ No vino JSON. Fallback a texto:", e);
-        payload = raw.trim();
-      }
-
-      // Manejo JSON esperado {status:"OK", pdf:"..."}
-      if (typeof payload === "object" && payload && payload.status === "OK") {
-        Swal.close();
-        await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado y PDF generado.`, "success");
-        document.getElementById("formulario").reset();
-        if (payload.pdf) {
-          console.log("📄 Abriendo PDF:", payload.pdf);
-          window.open(payload.pdf, "_blank");
-        } else {
-          console.log("ℹ️ No vino URL de PDF en payload.");
-        }
-        return;
-      }
-
-      // Modo compatibilidad si por alguna razón el backend devolviera "OK"
-      if (typeof payload === "string" && payload.toUpperCase().includes("OK")) {
-        Swal.close();
-        await Swal.fire("Éxito", `Trámite ${datos.numeroTramite} guardado.`, "success");
-        document.getElementById("formulario").reset();
-        return;
-      }
-
-      console.error("❌ Respuesta inesperada:", payload);
-      throw new Error("Respuesta inesperada del servidor");
-
-    } catch (err) {
-      console.error("🔥 Error total:", err);
-      Swal.close();
-      Swal.fire("Error", "Hubo un problema al guardar/generar el PDF", "error");
-    }
-  });
+  } catch (err) {
+    console.error("🔥 Error total:", err);
+    Swal.close();
+    Swal.fire("Error", "Hubo un problema al guardar/generar el PDF", "error");
+  }
 });
 </script>
 </body>
