@@ -1,83 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Panel de Administración</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel de Administración — Certificados</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    :root { --radius: 14px; }
-    body { font-family: system-ui, Arial; margin: 0; background:#f6f7fb; color:#111; }
-    header { padding: 16px 24px; background: #111827; color:#fff; display:flex; align-items:center; justify-content:space-between; }
-    header h1 { margin:0; font-size: 18px; font-weight:600; }
-    .tag { font-size:12px; opacity:.85; }
-    .wrap { padding: 18px 24px; max-width:1200px; margin:0 auto; }
-    .kpis { display:grid; grid-template-columns: repeat(4, minmax(160px,1fr)); gap:12px; margin-bottom:16px; }
-    .card { background:#fff; border-radius: var(--radius); box-shadow: 0 6px 20px rgba(0,0,0,.06); padding:14px; }
-    .card h3 { margin:0 0 6px; font-size:14px; color:#4b5563; font-weight:600; }
-    .card .num { font-size:22px; font-weight:700; }
-    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
-    .toolbar input, .toolbar select, .toolbar button, .panel button, .panel input { padding:10px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; }
-    .toolbar button, .panel button { background:#111827; color:#fff; border:0; cursor:pointer; }
-    .grid { overflow:auto; border-radius: var(--radius); }
-    table { width:100%; border-collapse: collapse; background:#fff; }
-    th, td { border-bottom:1px solid #f0f1f4; padding:10px; font-size:14px; }
-    th { text-align:left; background:#f9fafb; position:sticky; top:0; z-index:1; }
-    tr:hover td { background:#fafafa; }
-    .row-actions { display:flex; gap:8px; }
-    .pill { padding:4px 8px; border-radius:999px; font-size:12px; }
-    .ok { background:#e8fff0; color:#065f46; }
-    .warn { background:#fff7ed; color:#92400e; }
-    .bad { background:#fee2e2; color:#991b1b; }
-    .panel { margin-top:16px; display:grid; grid-template-columns: 2fr 1fr; gap:16px; }
-    .section h2 { margin:0 0 8px; font-size:16px; }
-    .section .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px; }
-    .muted { font-size:12px; color:#6b7280; }
-    .footer { margin:20px 0 10px; font-size:12px; color:#6b7280; text-align:center; }
+    *{ box-sizing:border-box; margin:0; padding:0; font-family:'Roboto',sans-serif; }
+    body{ background:#f4f6f9; color:#333; padding-bottom:70px; }
+    header{ background:#2F338F; color:#fff; text-align:center; padding:1.5rem 1rem; box-shadow:0 2px 5px rgba(0,0,0,.15); }
+    header img{ max-height:70px; display:block; margin:0 auto .5rem; }
+    header h1{ font-size:1.8rem; font-weight:700; }
+    header p{ font-size:.9rem; opacity:.9; }
+    .container{ max-width:1100px; margin:2rem auto; background:#fff; padding:1.25rem; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+    h2{ color:#2F338F; font-size:1.4rem; margin:0 0 .75rem; }
+    .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem; margin-bottom:1rem; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.9rem; }
+    .card h3{ font-size:.9rem; color:#4b5563; margin-bottom:.35rem; }
+    .card .num{ font-size:1.4rem; font-weight:700; }
+    .toolbar{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.75rem; }
+    input, select, button{ padding:10px 12px; border:1px solid #ccc; border-radius:10px; font-size:1rem; }
+    button{ background:#2F338F; color:#fff; font-weight:700; cursor:pointer; border:none; }
+    button[disabled]{ opacity:.6; cursor:not-allowed; }
+    .grid{ overflow:auto; border-radius:12px; border:1px solid #e5e7eb; }
+    table{ width:100%; border-collapse:collapse; background:#fff; }
+    th,td{ border-bottom:1px solid #f0f1f4; padding:10px; font-size:.95rem; }
+    th{ background:#f9fafb; text-align:left; position:sticky; top:0; z-index:1; }
+    tr:hover td{ background:#fafafa; }
+    .pill{ padding:4px 8px; border-radius:999px; font-size:.8rem; }
+    .ok{ background:#e8fff0; color:#065f46; }
+    .warn{ background:#fff7ed; color:#92400e; }
+    .bad{ background:#fee2e2; color:#991b1b; }
+    .actions{ display:flex; gap:.4rem; }
+    .panel{ display:grid; grid-template-columns:2fr 1fr; gap:1rem; margin-top:1rem; }
+    .section h2{ margin-bottom:.5rem; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.5rem; }
+    .muted{ color:#6b7280; font-size:.85rem; }
+    footer{ position:fixed; bottom:0; left:0; width:100%; background:#2F338F; color:#fff; text-align:center; padding:.8rem; font-size:.85rem; }
+    @media (max-width:900px){ .panel{ grid-template-columns:1fr; } .kpis{ grid-template-columns:1fr 1fr; } }
   </style>
 </head>
 <body>
 <header>
-  <h1>Panel de Administración</h1>
-  <div class="tag" id="userTag">...</div>
+  <img src="Logo el NUEVO ECUADOR.png" alt="Logo SNGRE">
+  <h1>Secretaría Nacional de Gestión de Riesgos</h1>
+  <p>Coordinación Zonal 5-8 | Uso Interno y Personal</p>
 </header>
 
-<div class="wrap">
+<div class="container">
+  <h2>Panel de Administración</h2>
+
   <div class="kpis">
     <div class="card"><h3>Total</h3><div class="num" id="k_total">-</div></div>
     <div class="card"><h3>Pendientes</h3><div class="num" id="k_pend">-</div></div>
-    <div class="card"><h3>Cumple</h3><div class="num" id="k_ok">-</div></div>
-    <div class="card"><h3>No cumple</h3><div class="num" id="k_bad">-</div></div>
+    <div class="card"><h3>Aprobados</h3><div class="num" id="k_ok">-</div></div>
+    <div class="card"><h3>Rechazados</h3><div class="num" id="k_bad">-</div></div>
   </div>
 
   <div class="toolbar">
-    <input id="search" placeholder="Buscar (trámite, solicitante, servicio...)" />
+    <input id="q" placeholder="Buscar (nº trámite, evento, solicitante, ciudad…)" style="flex:1; min-width:220px;">
     <select id="orderBy">
-      <option value="NumeroTramite">Ordenar por Nº Trámite</option>
-      <option value="FechaSolicitud">Ordenar por Fecha Solicitud</option>
-      <option value="Cumplimiento">Ordenar por Cumplimiento</option>
-      <option value="Solicitante">Ordenar por Solicitante</option>
+      <option value="FechaEmision">Fecha de emisión</option>
+      <option value="NumeroTramite" selected>Nº Trámite</option>
+      <option value="Evento">Evento</option>
+      <option value="PresentadoPor">Presentado por</option>
+      <option value="Estado">Estado</option>
     </select>
-    <select id="orderDir">
-      <option value="desc">Desc</option>
-      <option value="asc">Asc</option>
-    </select>
-    <select id="pageSize">
-      <option>10</option><option selected>20</option><option>50</option><option>100</option>
-    </select>
-    <button id="btnRefresh">Actualizar</button>
+    <select id="dir"><option value="desc" selected>Desc</option><option value="asc">Asc</option></select>
+    <select id="ps"><option>10</option><option selected>20</option><option>50</option><option>100</option></select>
+    <button id="refresh">Actualizar</button>
   </div>
 
-  <div class="grid card">
-    <table id="tbl">
+  <div class="grid">
+    <table>
       <thead>
         <tr>
           <th>#</th>
-          <th>Número</th>
-          <th>Fecha Solicitud</th>
-          <th>Fecha Entrega</th>
-          <th>Trámite</th>
-          <th>Solicitante</th>
-          <th>Cumplimiento</th>
+          <th>Nº Trámite</th>
+          <th>Evento</th>
+          <th>Presentado por</th>
+          <th>Ciudad</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>PDF</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -88,36 +94,35 @@
   <div class="panel">
     <div class="card section">
       <h2>Editar registro</h2>
-      <div id="editInfo" class="muted">Selecciona una fila para editar.</div>
+      <div id="editInfo" class="muted">Selecciona una fila.</div>
       <div id="editForm" style="display:none;">
         <div class="row">
           <div>
-            <label>Técnico</label>
-            <input id="f_Tecnico" />
-          </div>
-          <div>
-            <label>Fecha Entrega (dd/mm/yyyy)</label>
-            <input id="f_FechaEntrega" />
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Cumplimiento</label>
-            <select id="f_Cumplimiento">
+            <label>Estado</label>
+            <select id="f_Estado">
               <option value="">(vacío)</option>
-              <option value="Cumple">Cumple</option>
-              <option value="No cumple">No cumple</option>
-              <option value="Pendiente">Pendiente</option>
+              <option value="Aprobado">Aprobado</option>
+              <option value="Rechazado">Rechazado</option>
             </select>
           </div>
           <div>
-            <label>Observaciones</label>
-            <input id="f_Observaciones" />
+            <label>Fecha de Emisión</label>
+            <input type="date" id="f_FechaEmision">
           </div>
         </div>
         <div class="row">
-          <button id="btnSaveEdit">Guardar cambios</button>
-          <button id="btnRegen">Re-generar certificado</button>
+          <div>
+            <label>Observaciones</label>
+            <input id="f_Observaciones" placeholder="Observaciones internas">
+          </div>
+          <div>
+            <label>PDF (URL)</label>
+            <input id="f_PdfUrl" placeholder="https://...">
+          </div>
+        </div>
+        <div class="row">
+          <button id="save">Guardar cambios</button>
+          <button id="regen">Re-generar PDF</button>
         </div>
       </div>
     </div>
@@ -127,12 +132,12 @@
       <div class="row">
         <div>
           <label>Prefijo Nº Trámite</label>
-          <input id="c_prefijo" />
+          <input id="c_prefijo" placeholder="UPREA-">
         </div>
         <div>
           <label>Método numeración</label>
           <select id="c_metodo">
-            <option value="persistente">Persistente</option>
+            <option value="persistente">Persistente (contador)</option>
             <option value="maximo">Basado en máximo</option>
           </select>
         </div>
@@ -140,191 +145,231 @@
       <div class="row">
         <div>
           <label>Reset anual</label>
-          <select id="c_reset">
-            <option value="si">Sí</option>
-            <option value="no">No</option>
-          </select>
+          <select id="c_reset"><option value="si">Sí</option><option value="no">No</option></select>
         </div>
         <div>
-          <label>Formato de fecha</label>
-          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy' />
+          <label>Formato fecha certificado</label>
+          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy'>
         </div>
       </div>
       <div class="row">
-        <button id="btnSaveCfg">Guardar ajustes</button>
-        <button id="btnPreviewN">Previsualizar siguiente Nº</button>
+        <button id="saveCfg">Guardar ajustes</button>
+        <button id="previewNext">Previsualizar siguiente Nº</button>
       </div>
       <div class="muted" id="cfgMsg"></div>
     </div>
   </div>
-
-  <div class="footer">Hecho con Google Apps Script · Admin Panel</div>
 </div>
 
+<footer>
+  © 2025 Secretaría Nacional de Gestión de Riesgos - CZ 5-8 | Uso Interno
+</footer>
+
 <script>
-let state = { page:1, pageSize:20, search:'', orderBy:'NumeroTramite', orderDir:'desc', selectedRow:null, config:{} };
+const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
+const ADMIN_TOKEN = localStorage.getItem('ADMIN_TOKEN') || '';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Sesión
-  google.script.run.withSuccessHandler(s=>{
-    document.getElementById('userTag').textContent = s.allowed ? ('Usuario: '+s.email) : 'Acceso denegado';
-  }).api_getSession();
-
-  // Controles
-  document.getElementById('pageSize').addEventListener('change', ()=>{ state.pageSize=+val('pageSize'); load(); });
-  document.getElementById('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
-  document.getElementById('orderDir').addEventListener('change', ()=>{ state.orderDir=val('orderDir'); load(); });
-  document.getElementById('search').addEventListener('input', debounce(()=>{ state.search=val('search'); state.page=1; load(); }, 300));
-  document.getElementById('btnRefresh').addEventListener('click', ()=> load());
-
-  // Edición
-  document.getElementById('btnSaveEdit').addEventListener('click', saveEdit);
-  document.getElementById('btnRegen').addEventListener('click', regen);
-
-  // Config
-  document.getElementById('btnSaveCfg').addEventListener('click', saveCfg);
-  document.getElementById('btnPreviewN').addEventListener('click', previewNext);
-
-  // Cargar Config
-  google.script.run.withSuccessHandler(cfg=>{
-    state.config = cfg || {};
-    setVal('c_prefijo', cfg.prefijo_tramite||'UPREA-');
-    setVal('c_metodo', cfg.metodo_numeracion||'persistente');
-    setVal('c_reset',  cfg.reset_anual||'si');
-    setVal('c_formato', cfg.formato_fecha||'dd "de" mmmm "de" yyyy');
-  }).api_getConfig();
-
-  load();
-});
-
-function load(){
-  google.script.run.withSuccessHandler(renderTable).api_getStatsAndPage({
-    page: state.page,
-    pageSize: state.pageSize,
-    search: state.search,
-    orderBy: state.orderBy,
-    orderDir: state.orderDir
-  });
+function askTokenOnce(){
+  if (!ADMIN_TOKEN){
+    Swal.fire({
+      title:"Acceso",
+      input:"password",
+      inputLabel:"Token de administrador",
+      inputPlaceholder:"Ingresa el token",
+      inputAttributes:{ autocapitalize:"off", autocorrect:"off" },
+      confirmButtonText:"Entrar",
+      allowOutsideClick:false,
+      preConfirm:(v)=> v && v.trim()
+    }).then(res=>{
+      if(res.isConfirmed){
+        localStorage.setItem('ADMIN_TOKEN', res.value.trim());
+        location.reload();
+      }
+    });
+  }
 }
 
-function renderTable(res){
-  // KPIs
-  byId('k_total').textContent = res.stats.total;
-  byId('k_pend').textContent = res.stats.pendientes;
-  byId('k_ok').textContent = res.stats.cumple;
-  byId('k_bad').textContent = res.stats.nocumple;
+function hdr(){ return { "Authorization":"Bearer " + (localStorage.getItem('ADMIN_TOKEN')||'') }; }
 
-  const tbody = byId('tbody');
-  tbody.innerHTML = '';
-  res.rows.forEach(r=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.__row}</td>
-      <td>${safe(r.NumeroTramite)}</td>
-      <td>${safe(r.FechaSolicitud)}</td>
-      <td>${safe(r.FechaEntrega||'')}</td>
-      <td>${safe(r.Tramite||'')}</td>
-      <td>${safe(r.Solicitante||'')}</td>
-      <td>${badge(r.Cumplimiento||'')}</td>
-      <td class="row-actions">
-        <button data-row="${r.__row}" onclick="selectRow(${r.__row})">Editar</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+const state = { page:1, ps:20, q:'', orderBy:'NumeroTramite', dir:'desc', selected:null };
+
+document.getElementById('ps').addEventListener('change', ()=>{ state.ps=+val('ps'); load(); });
+document.getElementById('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
+document.getElementById('dir').addEventListener('change', ()=>{ state.dir=val('dir'); load(); });
+document.getElementById('q').addEventListener('input', debounce(()=>{ state.q=val('q'); state.page=1; load(); }, 300));
+document.getElementById('refresh').addEventListener('click', load);
+
+document.getElementById('save').addEventListener('click', saveEdit);
+document.getElementById('regen').addEventListener('click', regen);
+
+document.getElementById('saveCfg').addEventListener('click', saveCfg);
+document.getElementById('previewNext').addEventListener('click', previewNext);
+
+function val(id){ return document.getElementById(id).value; }
+function setVal(id,v){ document.getElementById(id).value = v; }
+function byId(id){ return document.getElementById(id); }
+function badge(s){
+  const t = (s||'').toLowerCase();
+  if(t==='aprobado') return `<span class="pill ok">Aprobado</span>`;
+  if(t==='rechazado') return `<span class="pill bad">Rechazado</span>`;
+  if(t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
+  return `<span class="pill">${s||''}</span>`;
+}
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+
+async function load(){
+  try{
+    const url = new URL(workerURL);
+    url.searchParams.set('action','list');
+    url.searchParams.set('page', state.page);
+    url.searchParams.set('pageSize', state.ps);
+    url.searchParams.set('search', state.q);
+    url.searchParams.set('orderBy', state.orderBy);
+    url.searchParams.set('orderDir', state.dir);
+
+    const res = await fetch(url, { headers: hdr() });
+    if (res.status===401){ askTokenOnce(); return; }
+    const data = await res.json();
+
+    // KPIs
+    byId('k_total').textContent = data.stats.total;
+    byId('k_pend').textContent = data.stats.pendientes;
+    byId('k_ok').textContent   = data.stats.aprobados;
+    byId('k_bad').textContent  = data.stats.rechazados;
+
+    // Tabla
+    const tb = byId('tbody'); tb.innerHTML='';
+    (data.rows||[]).forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.__row ?? ''}</td>
+        <td>${r.NumeroTramite||''}</td>
+        <td>${r.Evento||''}</td>
+        <td>${r.PresentadoPor||''}</td>
+        <td>${r.Ciudad||''}</td>
+        <td>${r.FechaEmision||r.Fecha||''}</td>
+        <td>${badge(r.Estado||'')}</td>
+        <td>${r.PdfUrl?`<a href="${r.PdfUrl}" target="_blank">Abrir</a>`:''}</td>
+        <td class="actions">
+          <button onclick='selectRow(${JSON.stringify(r.__row)})'>Editar</button>
+        </td>
+      `;
+      tb.appendChild(tr);
+    });
+
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error","No se pudo cargar la lista","error");
+  }
 }
 
-function selectRow(rowNum){
-  google.script.run.withSuccessHandler(rec=>{
-    state.selectedRow = rec.__row;
-    byId('editInfo').style.display = 'none';
-    byId('editForm').style.display = 'block';
-    setVal('f_Tecnico', rec.Tecnico||'');
-    setVal('f_FechaEntrega', toDMY(rec.FechaEntrega));
-    setVal('f_Cumplimiento', rec.Cumplimiento||'');
-    setVal('f_Observaciones', rec.Observaciones||'');
-    // scroll suave
-    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
-  }).api_getRecordByRow(rowNum);
+async function selectRow(row){
+  state.selected=row;
+  byId('editInfo').style.display='none';
+  byId('editForm').style.display='block';
+  try{
+    const url = new URL(workerURL);
+    url.searchParams.set('action','get');
+    url.searchParams.set('row', row);
+    const res = await fetch(url, { headers: hdr() });
+    if (res.status===401){ askTokenOnce(); return; }
+    const r = await res.json();
+    setVal('f_Estado', r.Estado||'');
+    setVal('f_FechaEmision', (r.FechaEmisionISO||'').slice(0,10));
+    setVal('f_Observaciones', r.Observaciones||'');
+    setVal('f_PdfUrl', r.PdfUrl||'');
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error","No se pudo abrir el registro","error");
+  }
 }
 
-function saveEdit(){
-  if(!state.selectedRow) return;
-  const updates = {
-    Tecnico: val('f_Tecnico'),
-    FechaEntrega: val('f_FechaEntrega'),
-    Cumplimiento: val('f_Cumplimiento'),
-    Observaciones: val('f_Observaciones')
+async function saveEdit(){
+  if(!state.selected) return;
+  const payload = {
+    row: state.selected,
+    updates: {
+      Estado: val('f_Estado'),
+      FechaEmision: val('f_FechaEmision'),
+      Observaciones: val('f_Observaciones'),
+      PdfUrl: val('f_PdfUrl')
+    }
   };
-  google.script.run.withSuccessHandler(()=>{
-    toast('Guardado');
-    load();
-  }).api_updateRecord({ __row: state.selectedRow, updates });
+  try{
+    const res = await fetch(workerURL+'?action=update', {
+      method:'POST',
+      headers: { ...hdr(), 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.status===401){ askTokenOnce(); return; }
+    const data = await res.json();
+    if(data.ok){
+      Swal.fire("Guardado","Cambios aplicados","success");
+      load();
+    }else{
+      throw new Error(data.message||"Error al guardar");
+    }
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error", e.message || "No se pudo guardar","error");
+  }
 }
 
-function regen(){
-  if(!state.selectedRow) return;
-  google.script.run.withSuccessHandler(res=>{
-    toast(res.message || 'Listo');
-  }).api_regenerarCertificado(state.selectedRow);
+async function regen(){
+  if(!state.selected) return;
+  try{
+    const res = await fetch(workerURL+'?action=regen', {
+      method:'POST',
+      headers: { ...hdr(), 'Content-Type':'application/json' },
+      body: JSON.stringify({ row: state.selected })
+    });
+    if (res.status===401){ askTokenOnce(); return; }
+    const data = await res.json();
+    if(data.ok){
+      Swal.fire("Listo", data.message || "PDF re-generado","success");
+      load();
+    }else{
+      throw new Error(data.message||"No se pudo generar");
+    }
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error", e.message || "No se pudo generar el PDF","error");
+  }
 }
 
-/*** CONFIG ***/
-function saveCfg(){
+/*** Ajustes ***/
+async function loadCfg(){
+  try{
+    const res = await fetch(workerURL+'?action=config_get', { headers: hdr() });
+    if (res.status===401){ askTokenOnce(); return; }
+    const c = await res.json();
+    setVal('c_prefijo', c.prefijo_tramite||'UPREA-');
+    setVal('c_metodo', c.metodo_numeracion||'persistente');
+    setVal('c_reset',  c.reset_anual||'si');
+    setVal('c_formato',c.formato_fecha||'dd "de" mmmm "de" yyyy');
+  }catch(e){ console.warn(e); }
+}
+async function saveCfg(){
   const cfg = {
     prefijo_tramite: val('c_prefijo'),
     metodo_numeracion: val('c_metodo'),
     reset_anual: val('c_reset'),
     formato_fecha: val('c_formato')
   };
-  google.script.run.withSuccessHandler(()=>{
-    byId('cfgMsg').textContent = 'Ajustes guardados.';
-    setTimeout(()=> byId('cfgMsg').textContent='', 2500);
-  }).api_saveConfig(cfg);
+  try{
+    const res = await fetch(workerURL+'?action=config_save', {
+      method:'POST',
+      headers: { ...hdr(), 'Content-Type':'application/json' },
+      body: JSON.stringify(cfg)
+    });
+    if (res.status===401){ askTokenOnce(); return; }
+    const data = await res.json();
+    if(data.ok){
+      byId('cfgMsg').textContent = 'Ajustes guardados.';
+      setTimeout(()=> byId('cfgMsg').textContent='', 2500);
+    }else{ throw new Error("No se guardó"); }
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error","No se pudieron guardar los ajustes","error");
+  }
 }
-
-function previewNext(){
-  google.script.run.withSuccessHandler(n=>{
-    byId('cfgMsg').textContent = 'Siguiente Nº (preview): ' + n;
-    setTimeout(()=> byId('cfgMsg').textContent='', 4000);
-  }).api_previewNextNumero();
-}
-
-/*** HELPERS ***/
-function val(id){ return byId(id).value; }
-function setVal(id,v){ byId(id).value = v; }
-function byId(id){ return document.getElementById(id); }
-function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
-function safe(s){ return (s===undefined||s===null)?'':String(s); }
-function badge(s){
-  const t = String(s).toLowerCase();
-  if (t==='cumple') return `<span class="pill ok">Cumple</span>`;
-  if (t==='no cumple') return `<span class="pill bad">No cumple</span>`;
-  if (t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
-  return `<span class="pill">${safe(s)}</span>`;
-}
-function toDMY(v){
-  if(!v) return '';
-  // si viene como Date serial, Apps Script devuelve string/serial indistinto: mostramos tal cual si ya tiene "/"
-  const s = String(v);
-  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/.test(s)) return s;
-  try {
-    const d = new Date(s);
-    const dd = String(d.getDate()).padStart(2,'0');
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  } catch(e){ return s; }
-}
-function toast(msg){
-  const el = document.createElement('div');
-  el.textContent = msg;
-  el.style.position='fixed'; el.style.bottom='24px'; el.style.right='24px';
-  el.style.background='#111827'; el.style.color='#fff'; el.style.padding='10px 14px';
-  el.style.borderRadius='10px'; el.style.boxShadow='0 8px 20px rgba(0,0,0,.2)';
-  document.body.appendChild(el);
-  setTimeout(()=> el.remove(), 2000);
-}
-</script>
-</body>
-</html>
