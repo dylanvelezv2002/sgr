@@ -14,13 +14,15 @@
     header h1 { font-size: 1.4rem; font-weight: bold; }
     header p { font-size: 0.9rem; opacity: 0.9; }
     .container { max-width: 1000px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #2F338F; font-size: 1.6rem; margin-bottom: 1.5rem; }
+    h2 { text-align: center; color: #2F338F; font-size: 1.6rem; margin-bottom: 1rem; }
+    .hint { background:#f2f4ff; border:1px solid #e5e8ff; color:#2F338F; padding:.75rem 1rem; border-radius:10px; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
+    .hint small { opacity:.8; }
     label { font-size: 0.95rem; color: #555; margin-bottom: 4px; display: block; }
     input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
     input:focus, select:focus { border-color: #2F338F; outline: none; }
     button { background-color: #2F338F; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.3s ease; }
     button:hover { background-color: #24286a; }
-    button[disabled] { opacity: .6; cursor: not-allowed; }
+    button[disabled] { opacity:.6; cursor:not-allowed; }
     .form-section { margin-bottom: 1rem; }
     form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
     form button { grid-column: span 2; }
@@ -38,6 +40,15 @@
 
 <div class="container">
   <h2>Certificado de Aprobación de Plan de Seguridad</h2>
+
+  <!-- Indicador del próximo número probable (preview) -->
+  <div class="hint">
+    <div>
+      <div id="previewNumero"><strong>Próximo N° de trámite:</strong> <span>consultando…</span></div>
+      <small>El número final lo asigna el servidor al guardar.</small>
+    </div>
+    <button type="button" id="refreshPreview" style="width:auto;padding:.5rem .8rem;">Actualizar</button>
+  </div>
 
   <form id="formulario" autocomplete="off" novalidate>
     <div class="form-section">
@@ -65,7 +76,6 @@
       <select id="provincia" required>
         <option value="">Seleccione una provincia</option>
         <option value="Guayas">Guayas</option>
-        <!-- agrega más provincias si quieres -->
       </select>
     </div>
 
@@ -74,7 +84,6 @@
       <select id="ciudad" required>
         <option value="">Seleccione una ciudad</option>
         <option value="Guayaquil">Guayaquil</option>
-        <!-- agrega más ciudades si quieres -->
       </select>
     </div>
 
@@ -120,54 +129,105 @@
 </footer>
 
 <script>
+/* ✅ URL del Worker (proxy a tu Apps Script gs-v3) */
 const workerURL = "https://white-night-b8de.dylanvillasagua.workers.dev";
 
-function required(v){ return v !== null && v !== undefined && String(v).trim() !== ""; }
+/* Utilidad */
+const required = v => v !== null && v !== undefined && String(v).trim() !== "";
 
+/* --------- PREVIEW DEL SIGUIENTE NÚMERO --------- */
+async function cargarPreview() {
+  const el = document.querySelector("#previewNumero span");
+  try {
+    el.textContent = "consultando…";
+    const res = await fetch(`${workerURL}?action=next`);
+    const data = await res.json();
+    el.textContent = data && data.nextPreview ? data.nextPreview : "(no disponible)";
+  } catch (e) {
+    console.error("Preview error:", e);
+    el.textContent = "(error al consultar)";
+  }
+}
+document.getElementById("refreshPreview").addEventListener("click", cargarPreview);
+document.addEventListener("DOMContentLoaded", cargarPreview);
+
+/* ----------------- ENVÍO DEL FORMULARIO ----------------- */
 document.getElementById("formulario").addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const btn = document.getElementById("generateBtn");
   btn.disabled = true;
 
   const datos = {
-    evento: evento.value.trim(),
-    presentadoPor: presentadoPor.value.trim(),
-    cedula: cedula.value.trim(),
-    lugar: lugar.value.trim(),
-    ciudad: ciudad.value,
-    provincia: provincia.value,
-    fechaEvento: fechaEvento.value,
-    horaInicio: horaInicio.value,
-    horaFin: horaFin.value,
-    aforo: aforo.value,
-    estado: estado.value,
-    fechaEmision: fechaEmision.value
+    // ⚠️ No enviamos numeroTramite: lo asigna el servidor
+    evento: document.getElementById("evento").value.trim(),
+    presentadoPor: document.getElementById("presentadoPor").value.trim(),
+    cedula: document.getElementById("cedula").value.trim(),
+    lugar: document.getElementById("lugar").value.trim(),
+    ciudad: document.getElementById("ciudad").value,
+    provincia: document.getElementById("provincia").value,
+    fechaEvento: document.getElementById("fechaEvento").value,
+    horaInicio: document.getElementById("horaInicio").value,
+    horaFin: document.getElementById("horaFin").value,
+    aforo: document.getElementById("aforo").value,
+    estado: document.getElementById("estado").value,
+    fechaEmision: document.getElementById("fechaEmision").value
   };
 
+  // Validación rápida
   const oblig = ["evento","presentadoPor","cedula","lugar","ciudad","provincia","fechaEvento","horaInicio","horaFin","aforo","estado","fechaEmision"];
-  const falt = oblig.filter(k => !required(datos[k]));
-  if (falt.length) { btn.disabled = false; return Swal.fire("Completa los campos", "Faltan: " + falt.join(", "), "warning"); }
+  const faltantes = oblig.filter(k => !required(datos[k]));
+  if (faltantes.length) {
+    btn.disabled = false;
+    await Swal.fire("Completa los campos", "Faltan: " + faltantes.join(", "), "warning");
+    return;
+  }
 
-  const ok = await Swal.fire({title:"Confirmar", text:"Se generará un nuevo número de trámite automáticamente.", icon:"question", showCancelButton:true, confirmButtonText:"Generar", cancelButtonText:"Cancelar"});
-  if (!ok.isConfirmed) { btn.disabled = false; return; }
+  const confirm = await Swal.fire({
+    title: "Confirmar",
+    text: "Se generará el número de trámite y el PDF.",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Generar",
+    cancelButtonText: "Cancelar"
+  });
+  if (!confirm.isConfirmed) { btn.disabled = false; return; }
 
-  Swal.fire({ title:"Generando certificado", html:"Por favor, espera…", allowOutsideClick:false, didOpen: () => Swal.showLoading() });
+  Swal.fire({
+    title: "Generando certificado",
+    html: "Por favor, espera…",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
 
   try {
-    const params = new URLSearchParams(); Object.entries(datos).forEach(([k,v])=>params.append(k,v));
-    const res = await fetch(workerURL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body: params.toString() });
+    // Enviar como x-www-form-urlencoded
+    const params = new URLSearchParams();
+    Object.entries(datos).forEach(([k, v]) => params.append(k, v));
+
+    const res = await fetch(workerURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
+    });
+
     const payload = await res.json();
+    console.log("Respuesta backend:", payload);
 
     if (payload && payload.status === "OK") {
       const numero = payload.numeroTramite || "(sin número)";
       Swal.close();
       await Swal.fire("Éxito", `Trámite ${numero} guardado${payload.pdf ? " y PDF generado" : ""}.`, "success");
-      formulario.reset();
+      document.getElementById("formulario").reset();
       if (payload.pdf) window.open(payload.pdf, "_blank");
+      // refresca el preview para el siguiente
+      cargarPreview();
     } else {
-      throw new Error((payload && (payload.message || payload.error)) || "Respuesta inesperada");
+      const msg = (payload && (payload.message || payload.error)) || "Respuesta inesperada del servidor";
+      throw new Error(msg);
     }
   } catch (err) {
+    console.error("Error total:", err);
     Swal.close();
     await Swal.fire("Error", (err && err.message) ? err.message : "Hubo un problema al guardar/generar el PDF", "error");
   } finally {
@@ -175,7 +235,5 @@ document.getElementById("formulario").addEventListener("submit", async (event) =
   }
 });
 </script>
-
 </body>
 </html>
-
