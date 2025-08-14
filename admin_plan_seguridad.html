@@ -7,52 +7,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
+  :root{
+    --brand:#2F338F;
+    --ink:#333;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --bg:#f4f6f9;
+  }
   *{box-sizing:border-box;margin:0;padding:0;font-family:'Roboto',sans-serif}
-  body{background:#f4f6f9;color:#333;padding-bottom:70px}
-  header{background:#2F338F;color:#fff;text-align:center;padding:1.5rem 1rem;box-shadow:0 2px 5px rgba(0,0,0,.15)}
-  header img{max-height:70px;display:block;margin:0 auto .5rem}
-  header h1{font-size:1.8rem;font-weight:bold}
-  header p{font-size:.9rem;opacity:.9}
-  .wrap{max-width:1100px;margin:1.5rem auto;background:#fff;padding:1.25rem;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
-  h2{color:#2F338F;font-size:1.2rem;margin:0 0 .75rem}
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
-  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.9rem}
-  .card h3{font-size:.95rem;color:#4b5563;margin-bottom:.35rem}
-  .card .num{font-size:1.6rem;font-weight:700}
-  .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem}
-  input,select,button{padding:10px 12px;border:1px solid #ccc;border-radius:10px;font-size:1rem}
+  body{background:var(--bg);color:var(--ink);padding-bottom:80px}
+
+  /* NAVBAR */
+  .nav{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.15)}
+  .nav .bar{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:.75rem 1rem}
+  .nav .brand{display:flex;align-items:center;gap:.75rem}
+  .nav img{height:40px}
+  .nav h1{font-size:1.25rem;font-weight:700}
+  .nav .links{margin-left:auto;display:flex;gap:.5rem}
+  .nav a{color:#fff;text-decoration:none;padding:.4rem .6rem;border-radius:8px}
+  .nav a:hover{background:rgba(255,255,255,.12)}
+
+  /* WRAPPER */
+  .wrap{max-width:1100px;margin:1rem auto;background:#fff;padding:1rem 1.25rem;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+
+  /* HEADER (igual a tu formulario) */
+  header.top{background:var(--brand);color:#fff;text-align:center;padding:1.25rem 1rem;box-shadow:0 2px 5px rgba(0,0,0,.15);border-radius:16px}
+  header.top img{max-height:70px;display:block;margin:0 auto .5rem}
+  header.top h2{font-size:1.5rem;font-weight:bold}
+  header.top p{font-size:.9rem;opacity:.9}
+
+  h3.section{color:var(--brand);font-size:1.2rem;margin:1rem 0 .75rem}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:.5rem 0 1rem}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:.9rem}
+  .card h4{font-size:.95rem;color:#4b5563;margin-bottom:.35rem}
+  .card .num{font-size:1.5rem;font-weight:700}
+
+  /* Toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0 .75rem}
+  input,select,button{padding:9px 11px;border:1px solid #ccc;border-radius:10px;font-size:.95rem}
   input{flex:1;min-width:220px}
-  button{background:#2F338F;color:#fff;font-weight:700;cursor:pointer;border:none}
-  button.secondary{background:#eef2ff;color:#2F338F;border:1px solid #c7ccff}
+  button{background:var(--brand);color:#fff;font-weight:700;cursor:pointer;border:none}
+  button.secondary{background:#eef2ff;color:var(--brand);border:1px solid #c7ccff}
+  button.icon{background:#fff;color:var(--brand);border:1px solid #c7ccff;padding:6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center}
+  button.icon svg{width:16px;height:16px;display:block}
+  button.small{padding:6px 10px;font-size:.9rem}
   button[disabled]{opacity:.6;cursor:not-allowed}
-  .grid{overflow:auto;border-radius:12px;border:1px solid #e5e7eb}
+
+  /* Table */
+  .grid{overflow:auto;border-radius:12px;border:1px solid var(--line)}
   table{width:100%;border-collapse:collapse;background:#fff}
-  th,td{border-bottom:1px solid #f0f1f4;padding:10px;font-size:.95rem;white-space:nowrap}
+  th,td{border-bottom:1px solid #f0f1f4;padding:8px 10px;font-size:.85rem;vertical-align:middle}
   th{background:#f9fafb;text-align:left;position:sticky;top:0;z-index:1}
   tr:hover td{background:#fafafa}
-  .pill{padding:4px 8px;border-radius:999px;font-size:.8rem}
+  .clip{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill{padding:2px 6px;border-radius:999px;font-size:.75rem}
   .ok{background:#e8fff0;color:#065f46}.bad{background:#fee2e2;color:#991b1b}
+
+  /* Layout inferior */
   .section{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-top:1rem}
-  .muted{color:#6b7280;font-size:.85rem}
+  .muted{color:var(--muted);font-size:.9rem}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
-  footer{position:fixed;bottom:0;left:0;width:100%;background:#2F338F;color:#fff;text-align:center;padding:.8rem;font-size:.85rem}
-  @media (max-width:900px){.section{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}}
+  label{font-size:.9rem;color:#555;display:block;margin-bottom:4px}
+
+  footer{position:fixed;bottom:0;left:0;width:100%;background:var(--brand);color:#fff;text-align:center;padding:.8rem;font-size:.85rem}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:1fr}
+    .section{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
-<header>
-  <img src="Logo el NUEVO ECUADOR.png" alt="Logo SNGRE">
-  <h1>Secretaría Nacional de Gestión de Riesgos</h1>
-  <p>Coordinación Zonal 5-8 | Uso Interno y Personal</p>
-</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="bar">
+    <div class="brand">
+      <img src="Logo el NUEVO ECUADOR.png" alt="Logo">
+      <h1>Administración de Certificados</h1>
+    </div>
+    <div class="links">
+      <a href="index.html">Inicio</a>
+      <a href="#" onclick="location.reload()">Panel</a>
+      <a href="#ayuda">Ayuda</a>
+    </div>
+  </div>
+</nav>
 
 <div class="wrap">
-  <h2>Listado</h2>
+  <header class="top">
+    <img src="Logo el NUEVO ECUADOR.png" alt="Logo SNGRE">
+    <h2>Secretaría Nacional de Gestión de Riesgos</h2>
+    <p>Coordinación Zonal 5-8 | Uso Interno y Personal</p>
+  </header>
+
+  <h3 class="section">Listado</h3>
 
   <div class="kpis">
-    <div class="card"><h3>Total</h3><div class="num" id="k_total">-</div></div>
-    <div class="card"><h3>Aprobados</h3><div class="num" id="k_ok">-</div></div>
-    <div class="card"><h3>Rechazados</h3><div class="num" id="k_bad">-</div></div>
+    <div class="card"><h4>Total</h4><div class="num" id="k_total">-</div></div>
+    <div class="card"><h4>Aprobados</h4><div class="num" id="k_ok">-</div></div>
+    <div class="card"><h4>Rechazados</h4><div class="num" id="k_bad">-</div></div>
   </div>
 
   <div class="toolbar">
@@ -66,8 +122,8 @@
     </select>
     <select id="dir"><option value="desc" selected>Desc</option><option value="asc">Asc</option></select>
     <select id="ps"><option>10</option><option selected>20</option><option>50</option><option>100</option></select>
-    <button id="refresh">Actualizar</button>
-    <button id="sync" class="secondary" title="Sincroniza el contador con la hoja">Sincronizar correlativo</button>
+    <button id="refresh" class="small">Actualizar</button>
+    <button id="sync" class="secondary small" title="Sincroniza el contador con la hoja">Sincronizar correlativo</button>
   </div>
 
   <div class="grid">
@@ -76,8 +132,8 @@
         <tr>
           <th>#</th>
           <th>N° de Trámite</th>
-          <th>Evento</th>
-          <th>Presentado por</th>
+          <th class="clip">Evento</th>
+          <th class="clip">Presentado por</th>
           <th>Ciudad</th>
           <th>Fecha Emisión</th>
           <th>Estado</th>
@@ -93,13 +149,63 @@
 
   <div class="section">
     <div class="card">
-      <h2>Editar registro</h2>
+      <h3 class="section">Editar registro</h3>
       <div id="editInfo" class="muted">Selecciona una fila.</div>
       <div id="editForm" style="display:none;">
         <div class="row">
           <div>
+            <label>Evento Deportivo</label>
+            <input id="f_evento" placeholder="Evento Deportivo">
+          </div>
+          <div>
+            <label>Presentado por</label>
+            <input id="f_presentadoPor" placeholder="Presentado por">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Cédula de Identidad</label>
+            <input id="f_cedula" placeholder="Cédula">
+          </div>
+          <div>
+            <label>Lugar del Evento</label>
+            <input id="f_lugar" placeholder="Lugar">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Ciudad</label>
+            <input id="f_ciudad" placeholder="Ciudad">
+          </div>
+          <div>
+            <label>Provincia</label>
+            <input id="f_provincia" placeholder="Provincia">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Fecha del Evento</label>
+            <input type="date" id="f_fechaEvento">
+          </div>
+          <div>
+            <label>Hora Inicio</label>
+            <input type="time" id="f_horaInicio">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Hora Fin</label>
+            <input type="time" id="f_horaFin">
+          </div>
+          <div>
+            <label>Aforo</label>
+            <input type="number" id="f_aforo" min="0" step="1" placeholder="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
             <label>Estado del Trámite</label>
-            <select id="f_Estado">
+            <select id="f_estado">
               <option value="">(vacío)</option>
               <option value="Aprobado">Aprobado</option>
               <option value="Rechazado">Rechazado</option>
@@ -107,33 +213,35 @@
           </div>
           <div>
             <label>Fecha de Emisión</label>
-            <input type="date" id="f_FechaEmision">
+            <input type="date" id="f_fechaEmision">
           </div>
         </div>
         <div class="row">
           <div>
-            <label>Observaciones (opcional)</label>
-            <input id="f_Observaciones" placeholder="Observaciones internas">
-          </div>
-          <div>
-            <label>URL PDF</label>
+            <label>URL PDF (opcional)</label>
             <input id="f_PdfUrl" placeholder="https://…">
           </div>
+          <div>
+            <label>Observaciones (opcional)</label>
+            <input id="f_Observaciones" placeholder="Observaciones">
+          </div>
         </div>
         <div class="row">
-          <button id="save">Guardar cambios</button>
+          <button id="save" class="small">Guardar cambios</button>
+          <button id="deleteBtn" class="secondary small" style="margin-left:.5rem">Eliminar registro</button>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>Ayuda</h2>
+    <div class="card" id="ayuda">
+      <h3 class="section">Ayuda</h3>
       <div class="muted">
         Este panel llama a tu <b>Cloudflare Worker</b>:
         <div style="margin:.4rem 0 .2rem .2rem">
           • Admin: <code>/panel?action=…</code><br/>
           • Sync: <code>/?action=sync</code>
         </div>
+        Para soporte, comunicarse con el <b>Ing. Jose Smith</b>.
       </div>
     </div>
   </div>
@@ -144,179 +252,266 @@
 </footer>
 
 <script>
-  // 📌 ENDPOINTS
-  const API_PANEL = "https://white-night-b8de.dylanvillasagua.workers.dev/panel"; // admin (list/get/update/regen)
-  const API_FORM  = "https://white-night-b8de.dylanvillasagua.workers.dev/";      // sync (raíz del formulario)
+/* ====== CONFIG API ====== */
+const API_PANEL = "https://white-night-b8de.dylanvillasagua.workers.dev/panel"; // admin
+const API_FORM  = "https://white-night-b8de.dylanvillasagua.workers.dev/";      // sync
 
-  // Estado UI
-  const state = { page:1, ps:20, q:'', orderBy:'N° de Trámite', dir:'desc', selected:null, pdfHeader:null };
+/* ====== STATE & HELPERS ====== */
+const $ = (id)=>document.getElementById(id);
+const state = { page:1, ps:20, q:'', orderBy:'N° de Trámite', dir:'desc', selected:null, pdfHeader:null, numeroTramite:null };
 
-  // Helpers
-  const $ = (id)=>document.getElementById(id);
-  const val = (id)=>$(id).value;
-  const setVal = (id,v)=>$(id).value=(v??'');
-  const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);}};
-  const safe = (v)=> (v===undefined||v===null)?'':String(v);
-  const badge = (s)=> (String(s||'').toLowerCase()==='aprobado')
-                      ? '<span class="pill ok">Aprobado</span>'
-                      : '<span class="pill bad">Rechazado</span>';
+function safe(v){ return (v===undefined||v===null)?'':String(v); }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+function badge(s){ return (String(s||'').toLowerCase()==='aprobado')?'<span class="pill ok">Aprobado</span>':'<span class="pill bad">Rechazado</span>'; }
+function icon(name){ // mini SVGs
+  const map={
+    edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+    link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 1 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 1 0 7 7l1-1"/></svg>',
+    open:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M5 5v14h14"/></svg>',
+    refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v7h-7"/></svg>',
+    trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>'
+  };
+  return map[name]||'';
+}
 
-  // Eventos UI
-  $('ps').addEventListener('change', ()=>{ state.ps=+val('ps'); load(); });
-  $('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
-  $('dir').addEventListener('change', ()=>{ state.dir=val('dir'); load(); });
-  $('q').addEventListener('input', debounce(()=>{ state.q=val('q'); state.page=1; load(); }, 300));
-  $('refresh').addEventListener('click', load);
-  $('sync').addEventListener('click', doSync);
-  $('save').addEventListener('click', saveEdit);
+/* ====== UI EVENTOS ====== */
+$('ps').addEventListener('change', ()=>{ state.ps=+$('ps').value; load(); });
+$('orderBy').addEventListener('change', ()=>{ state.orderBy=$('orderBy').value; load(); });
+$('dir').addEventListener('change', ()=>{ state.dir=$('dir').value; load(); });
+$('q').addEventListener('input', debounce(()=>{ state.q=$('q').value; state.page=1; load(); }, 300));
+$('refresh').addEventListener('click', load);
+$('sync').addEventListener('click', doSync);
+$('save').addEventListener('click', saveEdit);
+$('deleteBtn').addEventListener('click', doDelete);
 
-  // Cargar lista
-  async function load(){
-    try{
-      const u = new URL(API_PANEL);
-      u.searchParams.set("action","list");
-      u.searchParams.set("page", state.page);
-      u.searchParams.set("pageSize", state.ps);
-      u.searchParams.set("search", state.q);
-      u.searchParams.set("orderBy", state.orderBy);
-      u.searchParams.set("orderDir", state.dir);
+/* ====== CARGA LISTA ====== */
+async function load(){
+  try{
+    const u = new URL(API_PANEL);
+    u.searchParams.set("action","list");
+    u.searchParams.set("page", state.page);
+    u.searchParams.set("pageSize", state.ps);
+    u.searchParams.set("search", state.q);
+    u.searchParams.set("orderBy", state.orderBy);
+    u.searchParams.set("orderDir", state.dir);
 
-      const res = await fetch(u, { headers:{ "Accept":"application/json" }});
-      const text = await res.text();
-      let data; try { data = JSON.parse(text) } catch { data = { raw:text }; }
+    const res = await fetch(u, { headers:{ "Accept":"application/json" }});
+    const text = await res.text();
+    let data; try { data = JSON.parse(text) } catch { data = { raw:text }; }
 
-      if (data.error){ throw new Error(data.error); }
+    if (data.error){ throw new Error(data.error); }
 
-      // KPIs (solo Total/Aprobados/Rechazados)
-      const stats = {
-        total: data?.stats?.total ?? (Array.isArray(data)?data.length:0),
-        aprobados: data?.stats?.aprobados ?? 0,
-        rechazados: data?.stats?.rechazados ?? 0
-      };
-      $('k_total').textContent = stats.total;
-      $('k_ok').textContent    = stats.aprobados;
-      $('k_bad').textContent   = stats.rechazados;
+    // KPIs
+    const stats = {
+      total: data?.stats?.total ?? (Array.isArray(data)?data.length:0),
+      aprobados: data?.stats?.aprobados ?? 0,
+      rechazados: data?.stats?.rechazados ?? 0
+    };
+    $('k_total').textContent = stats.total;
+    $('k_ok').textContent    = stats.aprobados;
+    $('k_bad').textContent   = stats.rechazados;
 
-      const rows = Array.isArray(data?.rows) ? data.rows : (Array.isArray(data) ? data : []);
-      const tb = $('tbody'); tb.innerHTML='';
+    const rows = Array.isArray(data?.rows) ? data.rows : (Array.isArray(data) ? data : []);
+    const tb = $('tbody'); tb.innerHTML='';
 
-      rows.forEach(r=>{
-        const pdf = r.PDF || r['URL PDF'] || r.PdfUrl || '';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.__row??''}</td>
-          <td>${safe(r['N° de Trámite'] || r.numeroTramite)}</td>
-          <td>${safe(r['Evento Deportivo'] || r.evento)}</td>
-          <td>${safe(r['Presentado por'] || r.presentadoPor)}</td>
-          <td>${safe(r['Ciudad'] || r.ciudad)}</td>
-          <td>${safe(r['Fecha de Emisión'] || r.fechaEmision || '')}</td>
-          <td>${badge(r['Estado del Trámite'] || r.estado)}</td>
-          <td>${pdf ? `<a href="${pdf}" target="_blank">Abrir</a>` : ''}</td>
-          <td>
-            <button class="secondary" onclick="openRow(${r.__row})">Editar</button>
-            <button class="secondary" onclick="copyLink('${pdf||''}')">Copiar</button>
-            <button class="secondary" onclick="regen(${r.__row})">Regenerar</button>
-          </td>`;
-        tb.appendChild(tr);
-      });
+    rows.forEach(r=>{
+      const pdf = r.PDF || r['URL PDF'] || r.PdfUrl || '';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.__row??''}</td>
+        <td class="clip" title="${safe(r['N° de Trámite'] || r.numeroTramite)}">${safe(r['N° de Trámite'] || r.numeroTramite)}</td>
+        <td class="clip" title="${safe(r['Evento Deportivo'] || r.evento)}">${safe(r['Evento Deportivo'] || r.evento)}</td>
+        <td class="clip" title="${safe(r['Presentado por'] || r.presentadoPor)}">${safe(r['Presentado por'] || r.presentadoPor)}</td>
+        <td>${safe(r['Ciudad'] || r.ciudad)}</td>
+        <td>${safe(r['Fecha de Emisión'] || r.fechaEmision || '')}</td>
+        <td>${badge(r['Estado del Trámite'] || r.estado)}</td>
+        <td>${pdf ? `<a href="${pdf}" target="_blank" title="Abrir PDF">${icon('open')}</a>` : ''}</td>
+        <td style="display:flex;gap:.35rem;">
+          <button class="icon" title="Editar" onclick="openRow(${r.__row})">${icon('edit')}</button>
+          <button class="icon" title="Copiar enlace" onclick="copyLink('${pdf||''}')">${icon('link')}</button>
+          <button class="icon" title="Regenerar PDF" onclick="regen(${r.__row})">${icon('refresh')}</button>
+          <button class="icon" title="Eliminar" onclick="doDelete(${r.__row})">${icon('trash')}</button>
+        </td>`;
+      tb.appendChild(tr);
+    });
 
-    }catch(err){
-      console.error(err);
-      Swal.fire("Error", err.message || "No se pudo cargar la lista", "error");
-    }
+  }catch(err){
+    console.error(err);
+    Swal.fire("Error", err.message || "No se pudo cargar la lista", "error");
   }
+}
 
-  // Abrir fila
-  async function openRow(row){
-    try{
-      const u = new URL(API_PANEL);
-      u.searchParams.set("action","get");
-      u.searchParams.set("row", row);
-      const res = await fetch(u);
-      const rec = await res.json();
-      if (rec.error) throw new Error(rec.error);
+/* ====== ABRIR FILA ====== */
+async function openRow(row){
+  try{
+    const u = new URL(API_PANEL);
+    u.searchParams.set("action","get");
+    u.searchParams.set("row", row);
+    const res = await fetch(u);
+    const rec = await res.json();
+    if (rec.error) throw new Error(rec.error);
 
-      state.selected = rec.__row;
-      state.pdfHeader = rec._pdfHeader || null;
+    state.selected = rec.__row;
+    state.pdfHeader = rec._pdfHeader || null;
+    state.numeroTramite = rec['N° de Trámite'] || rec.numeroTramite || '';
 
-      $('editInfo').style.display='none';
-      $('editForm').style.display='block';
+    // mapear campos
+    $('editInfo').style.display='none';
+    $('editForm').style.display='block';
 
-      setVal('f_Estado', rec['Estado del Trámite'] || rec.estado || '');
-      setVal('f_FechaEmision', (rec.FechaEmisionISO || '').slice(0,10));
-      setVal('f_Observaciones', rec.Observaciones || '');
-      const pdfVal = rec.PDF || rec['URL PDF'] || rec.PdfUrl || '';
-      setVal('f_PdfUrl', pdfVal);
+    $('f_evento').value        = rec['Evento Deportivo'] || rec.evento || '';
+    $('f_presentadoPor').value = rec['Presentado por'] || rec.presentadoPor || '';
+    $('f_cedula').value        = rec['Cédula de Identidad'] || rec.cedula || '';
+    $('f_lugar').value         = rec['Lugar del Evento'] || rec.lugar || '';
+    $('f_ciudad').value        = rec['Ciudad'] || rec.ciudad || '';
+    $('f_provincia').value     = rec['Provincia'] || rec.provincia || '';
 
-      window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
-    }catch(e){
-      console.error(e);
-      Swal.fire("Error", e.message || "No se pudo abrir el registro", "error");
-    }
+    // fecha evento: intentamos normalizar a ISO si vino con formato largo
+    const fev = rec['Fecha del Evento'] || rec.fechaEvento || '';
+    $('f_fechaEvento').value   = isoGuess(fev);
+
+    $('f_horaInicio').value    = rec['Hora Inicio'] || rec.horaInicio || rec['horaInicio'] || '';
+    $('f_horaFin').value       = rec['Hora Fin'] || rec.horaFin || rec['horaFin'] || '';
+    $('f_aforo').value         = rec['Aforo'] || rec.aforo || '';
+
+    $('f_estado').value        = rec['Estado del Trámite'] || rec.estado || '';
+    $('f_fechaEmision').value  = (rec.FechaEmisionISO || '').slice(0,10);
+
+    const pdfVal               = rec.PDF || rec['URL PDF'] || rec.PdfUrl || '';
+    $('f_PdfUrl').value        = pdfVal;
+    $('f_Observaciones').value = rec.Observaciones || '';
+
+    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error", e.message || "No se pudo abrir el registro", "error");
   }
+}
 
-  // Guardar cambios
-  async function saveEdit(){
-    if (!state.selected) return;
+/* ====== GUARDAR ====== */
+async function saveEdit(){
+  if (!state.selected) return;
+  const params = new URLSearchParams();
+  params.set("action","update");
+  params.set("__row", String(state.selected));
+
+  // nombres EXACTOS de headers en la hoja
+  params.set("Evento Deportivo", $('f_evento').value);
+  params.set("Presentado por", $('f_presentadoPor').value);
+  params.set("Cédula de Identidad", $('f_cedula').value);
+  params.set("Lugar del Evento", $('f_lugar').value);
+  params.set("Ciudad", $('f_ciudad').value);
+  params.set("Provincia", $('f_provincia').value);
+  params.set("Fecha del Evento", $('f_fechaEvento').value);   // si tu hoja guarda texto largo, tu backend puede formatear
+  params.set("Hora Inicio", $('f_horaInicio').value);
+  params.set("Hora Fin", $('f_horaFin').value);
+  params.set("Aforo", $('f_aforo').value);
+  params.set("Estado del Trámite", $('f_estado').value);
+  params.set("Fecha de Emisión", $('f_fechaEmision').value);
+  params.set("Observaciones", $('f_Observaciones').value);
+  if (state.pdfHeader) params.set(state.pdfHeader, $('f_PdfUrl').value);
+
+  const res = await fetch(API_PANEL, {
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+    body: params.toString()
+  });
+  const out = await res.json();
+  if (!out.ok){ Swal.fire("Error","No se pudo guardar","error"); return; }
+  Swal.fire("Guardado","Cambios aplicados","success");
+  load();
+}
+
+/* ====== ELIMINAR ====== */
+async function doDelete(row){
+  const targetRow = row || state.selected;
+  if (!targetRow){ Swal.fire("Aviso","Selecciona un registro primero","info"); return; }
+  const c = await Swal.fire({
+    title:"¿Eliminar registro?",
+    text:"Esta acción no se puede deshacer.",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonText:"Sí, eliminar",
+    cancelButtonText:"Cancelar"
+  });
+  if (!c.isConfirmed) return;
+
+  try{
     const params = new URLSearchParams();
-    params.set("action","update");
-    params.set("__row", String(state.selected));
-    params.set("Estado del Trámite", val('f_Estado'));
-    params.set("Fecha de Emisión", val('f_FechaEmision'));
-    params.set("Observaciones", val('f_Observaciones'));
-    if (state.pdfHeader) params.set(state.pdfHeader, val('f_PdfUrl'));
-
+    params.set("action","delete");
+    params.set("row", String(targetRow));
     const res = await fetch(API_PANEL, {
       method:"POST",
       headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
       body: params.toString()
     });
-    const out = await res.json();
-    if (!out.ok){ Swal.fire("Error","No se pudo guardar","error"); return; }
-    Swal.fire("Guardado","Cambios aplicados","success");
+    const out = await res.json().catch(()=>({}));
+    if (!out || out.ok===false){
+      Swal.fire("Aviso","Eliminar no disponible en el backend (action=delete).","warning");
+      return;
+    }
+    Swal.fire("Eliminado","Registro eliminado","success");
+    state.selected = null;
+    $('editForm').style.display='none';
+    $('editInfo').style.display='block';
     load();
+  }catch(e){
+    Swal.fire("Error","No se pudo eliminar","error");
   }
+}
 
-  // Regenerar PDF
-  async function regen(row){
-    try{
-      const u = new URL(API_PANEL);
-      u.searchParams.set("action","regen");
-      u.searchParams.set("row", row);
-      const res = await fetch(u);
-      const d = await res.json().catch(()=>({}));
-      if (!d || d.error || d.ok===false){
-        Swal.fire("Aviso","Regenerar no disponible en el backend (action=regen).","warning");
-        return;
-      }
-      if (d.pdf){ window.open(d.pdf, "_blank"); }
-      Swal.fire("Listo","PDF regenerado","success");
-      load();
-    }catch(e){
-      Swal.fire("Error","No se pudo regenerar","error");
+/* ====== REGENERAR PDF ====== */
+async function regen(row){
+  try{
+    const u = new URL(API_PANEL);
+    u.searchParams.set("action","regen");
+    u.searchParams.set("row", row);
+    const res = await fetch(u);
+    const d = await res.json().catch(()=>({}));
+    if (!d || d.error || d.ok===false){
+      Swal.fire("Aviso","Regenerar no disponible en el backend (action=regen).","warning");
+      return;
     }
+    if (d.pdf){ window.open(d.pdf, "_blank"); }
+    Swal.fire("Listo","PDF regenerado","success");
+    load();
+  }catch(e){
+    Swal.fire("Error","No se pudo regenerar","error");
   }
+}
 
-  // Copiar link PDF
-  function copyLink(url){
-    if (!url){ Swal.fire("Aviso","No hay URL de PDF en la fila.","info"); return; }
-    navigator.clipboard.writeText(url);
-    Swal.fire("Copiado","Enlace copiado al portapapeles","success");
+/* ====== COPIAR ENLACE ====== */
+function copyLink(url){
+  if (!url){ Swal.fire("Aviso","No hay URL de PDF en la fila.","info"); return; }
+  navigator.clipboard.writeText(url);
+  Swal.fire("Copiado","Enlace copiado al portapapeles","success");
+}
+
+/* ====== SYNC ====== */
+async function doSync(){
+  try{
+    const res = await fetch(API_FORM + "?action=sync");
+    const js = await res.json();
+    Swal.fire("Sincronizado", "seq="+(js.syncedTo??"-")+" | next="+(js.nextPreview??"-"), "success");
+  }catch(e){
+    Swal.fire("Error","No se pudo sincronizar","error");
   }
+}
 
-  // Sincronizar correlativo (llama a la raíz del worker → Apps Script del formulario)
-  async function doSync(){
-    try{
-      const res = await fetch(API_FORM + "?action=sync");
-      const js = await res.json();
-      Swal.fire("Sincronizado", "seq="+(js.syncedTo??"-")+" | next="+(js.nextPreview??"-"), "success");
-    }catch(e){
-      Swal.fire("Error","No se pudo sincronizar","error");
-    }
-  }
+/* ====== UTIL ====== */
+function isoGuess(s){
+  if (!s) return "";
+  const t = String(s).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t; // ya ISO
+  // intenta DD/MM/YYYY
+  const m = t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m){ const d=m[1].padStart(2,'0'), mm=m[2].padStart(2,'0'); return `${m[3]}-${mm}-${d}`; }
+  // si vino "13 de agosto de 2025" lo dejamos vacío para no romper
+  return "";
+}
 
-  // Init
-  document.addEventListener('DOMContentLoaded', load);
+/* INIT */
+document.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 </html>
