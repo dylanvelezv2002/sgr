@@ -9,20 +9,17 @@
   <style>
     *{ box-sizing:border-box; margin:0; padding:0; font-family:'Roboto',sans-serif; }
     body{ background:#f4f6f9; color:#333; padding-bottom:70px; }
-    header{ background:#2F338F; color:#fff; text-align:center; padding:1.5rem 1rem; box-shadow:0 2px 5px rgba(0,0,0,.15); }
-    header img{ max-height:70px; display:block; margin:0 auto .5rem; }
-    header h1{ font-size:1.8rem; font-weight:700; }
-    header p{ font-size:.9rem; opacity:.9; }
-    .container{ max-width:1100px; margin:2rem auto; background:#fff; padding:1.25rem; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
-    h2{ color:#2F338F; font-size:1.4rem; margin:0 0 .75rem; }
-    .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem; margin-bottom:1rem; }
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.9rem; }
-    .card h3{ font-size:.9rem; color:#4b5563; margin-bottom:.35rem; }
-    .card .num{ font-size:1.4rem; font-weight:700; }
-    .toolbar{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.75rem; }
+    header{ background:#2F338F; color:#fff; text-align:center; padding:1.2rem 1rem; }
+    header h1{ font-size:1.4rem; font-weight:700; }
+    .container{ max-width:1100px; margin:1.5rem auto; background:#fff; padding:1rem; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+    h2{ color:#2F338F; font-size:1.1rem; margin:0 0 .6rem; }
+    .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:.6rem; margin-bottom:.8rem; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.7rem; }
+    .card h3{ font-size:.85rem; color:#4b5563; margin-bottom:.3rem; }
+    .card .num{ font-size:1.2rem; font-weight:700; }
+    .toolbar{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.7rem; }
     input, select, button{ padding:10px 12px; border:1px solid #ccc; border-radius:10px; font-size:1rem; }
     button{ background:#2F338F; color:#fff; font-weight:700; cursor:pointer; border:none; }
-    button[disabled]{ opacity:.6; cursor:not-allowed; }
     .grid{ overflow:auto; border-radius:12px; border:1px solid #e5e7eb; }
     table{ width:100%; border-collapse:collapse; background:#fff; }
     th,td{ border-bottom:1px solid #f0f1f4; padding:10px; font-size:.95rem; }
@@ -32,24 +29,17 @@
     .ok{ background:#e8fff0; color:#065f46; }
     .warn{ background:#fff7ed; color:#92400e; }
     .bad{ background:#fee2e2; color:#991b1b; }
-    .actions{ display:flex; gap:.4rem; }
     .panel{ display:grid; grid-template-columns:2fr 1fr; gap:1rem; margin-top:1rem; }
-    .section h2{ margin-bottom:.5rem; }
     .row{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.5rem; }
     .muted{ color:#6b7280; font-size:.85rem; }
-    footer{ position:fixed; bottom:0; left:0; width:100%; background:#2F338F; color:#fff; text-align:center; padding:.8rem; font-size:.85rem; }
     @media (max-width:900px){ .panel{ grid-template-columns:1fr; } .kpis{ grid-template-columns:1fr 1fr; } }
   </style>
 </head>
 <body>
-<header>
-  <img src="Logo el NUEVO ECUADOR.png" alt="Logo SNGRE">
-  <h1>Secretaría Nacional de Gestión de Riesgos</h1>
-  <p>Coordinación Zonal 5-8 | Uso Interno y Personal</p>
-</header>
+<header><h1>Panel de Administración</h1></header>
 
 <div class="container">
-  <h2>Panel de Administración</h2>
+  <h2>Listado</h2>
 
   <div class="kpis">
     <div class="card"><h3>Total</h3><div class="num" id="k_total">-</div></div>
@@ -92,7 +82,7 @@
   </div>
 
   <div class="panel">
-    <div class="card section">
+    <div class="card">
       <h2>Editar registro</h2>
       <div id="editInfo" class="muted">Selecciona una fila.</div>
       <div id="editForm" style="display:none;">
@@ -121,119 +111,96 @@
             <input id="f_PdfUrl" placeholder="https://...">
           </div>
         </div>
-        <div class="row">
-          <button id="save">Guardar cambios</button>
-          <button id="regen">Re-generar PDF (opcional)</button>
-        </div>
+        <div class="row"><button id="save">Guardar cambios</button></div>
       </div>
     </div>
 
-    <div class="card section">
-      <h2>Ajustes del Panel</h2>
-      <div class="row">
-        <div>
-          <label>Formato fecha (vista)</label>
-          <input id="c_formato" placeholder='dd "de" mmmm "de" yyyy'>
-        </div>
-        <div>
-          <label>Orden por defecto</label>
-          <select id="c_orden_por">
-            <option>N° de Trámite</option>
-            <option>Fecha de Emisión</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Dirección</label>
-          <select id="c_orden_dir"><option value="asc">Asc</option><option value="desc">Desc</option></select>
-        </div>
-        <div>
-          <label>ID Plantilla Docs (opcional)</label>
-          <input id="c_tpl" placeholder="1AbC… (doc_template_id)">
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>ID Carpeta PDFs (opcional)</label>
-          <input id="c_folder" placeholder="1FOLDER… (pdf_folder_id)">
-        </div>
-        <div style="display:flex;align-items:flex-end">
-          <button id="saveCfg">Guardar ajustes</button>
-        </div>
-      </div>
-      <div class="muted" id="cfgMsg"></div>
+    <div class="card">
+      <h2>Ayuda</h2>
+      <div class="muted">Este panel llama a tu <b>Cloudflare Worker</b>, y el Worker proxyea a <b>Apps Script</b>. CORS resuelto.</div>
     </div>
   </div>
 </div>
 
-<footer>
-  © 2025 Secretaría Nacional de Gestión de Riesgos - CZ 5-8 | Uso Interno
-</footer>
-
 <script>
+/** 👇 Cambia esta URL por la de tu Worker (no Apps Script) */
+const API_BASE = "https://TU-WORKER.workers.dev";
+
+/* Estado local */
 const state = { page:1, ps:20, q:'', orderBy:'N° de Trámite', dir:'desc', selected:null, pdfHeader:null };
 
+/* UI handlers */
 document.getElementById('ps').addEventListener('change', ()=>{ state.ps=+val('ps'); load(); });
 document.getElementById('orderBy').addEventListener('change', ()=>{ state.orderBy=val('orderBy'); load(); });
 document.getElementById('dir').addEventListener('change', ()=>{ state.dir=val('dir'); load(); });
 document.getElementById('q').addEventListener('input', debounce(()=>{ state.q=val('q'); state.page=1; load(); }, 300));
 document.getElementById('refresh').addEventListener('click', load);
-
 document.getElementById('save').addEventListener('click', saveEdit);
-document.getElementById('regen').addEventListener('click', regen);
 
+/* Helpers */
 function val(id){ return document.getElementById(id).value; }
 function setVal(id,v){ document.getElementById(id).value = v??''; }
 function byId(id){ return document.getElementById(id); }
 function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
-function badge(s){
-  const t = (s||'').toLowerCase();
-  if (t==='aprobado') return `<span class="pill ok">Aprobado</span>`;
-  if (t==='rechazado') return `<span class="pill bad">Rechazado</span>`;
-  if (t==='pendiente') return `<span class="pill warn">Pendiente</span>`;
-  return `<span class="pill">${s||''}</span>`;
-}
+function badge(s){ const t=(s||'').toLowerCase(); if(t==='aprobado')return'<span class="pill ok">Aprobado</span>'; if(t==='rechazado')return'<span class="pill bad">Rechazado</span>'; if(t==='pendiente')return'<span class="pill warn">Pendiente</span>'; return '<span class="pill">'+(s||'')+'</span>'; }
 function safe(v){ return (v===undefined||v===null)?'':String(v); }
 
-function load(){
-  google.script.run.withSuccessHandler(render).api_list({
-    page: state.page, pageSize: state.ps, search: state.q, orderBy: state.orderBy, orderDir: state.dir
-  });
+/* LISTAR (GET → tu Worker → Apps Script) */
+async function load(){
+  try{
+    const u = new URL(API_BASE + "/");
+    u.searchParams.set("action","list");
+    u.searchParams.set("page", state.page);
+    u.searchParams.set("pageSize", state.ps);
+    u.searchParams.set("search", state.q);
+    u.searchParams.set("orderBy", state.orderBy);
+    u.searchParams.set("orderDir", state.dir);
+
+    const res = await fetch(u, { headers: { "Accept":"application/json" } });
+    const data = await res.json();
+    if (data.error){ throw new Error(data.error); }
+
+    byId('k_total').textContent = data.stats.total ?? '-';
+    byId('k_pend').textContent  = data.stats.pendientes ?? '-';
+    byId('k_ok').textContent    = data.stats.aprobados ?? '-';
+    byId('k_bad').textContent   = data.stats.rechazados ?? '-';
+
+    const tb = byId('tbody'); tb.innerHTML='';
+    (data.rows||[]).forEach(r=>{
+      const pdf = r.PDF || r['URL PDF'] || r.PdfUrl || '';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.__row??''}</td>
+        <td>${safe(r['N° de Trámite'])}</td>
+        <td>${safe(r['Evento Deportivo'])}</td>
+        <td>${safe(r['Presentado por'])}</td>
+        <td>${safe(r['Ciudad'])}</td>
+        <td>${safe(r['Fecha de Emisión']||'')}</td>
+        <td>${badge(r['Estado del Trámite']||'')}</td>
+        <td>${pdf ? '<a href="'+pdf+'" target="_blank">Abrir</a>' : ''}</td>
+        <td class="actions"><button onclick="openRow(${r.__row})">Editar</button></td>
+      `;
+      tb.appendChild(tr);
+    });
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error", e.message || "No se pudo cargar la lista", "error");
+  }
 }
 
-function render(res){
-  byId('k_total').textContent = res.stats.total;
-  byId('k_pend').textContent  = res.stats.pendientes;
-  byId('k_ok').textContent    = res.stats.aprobados;
-  byId('k_bad').textContent   = res.stats.rechazados;
+/* OBTENER UNA FILA (GET) */
+async function openRow(row){
+  try{
+    const u = new URL(API_BASE + "/");
+    u.searchParams.set("action","get");
+    u.searchParams.set("row", row);
+    const res = await fetch(u);
+    const rec = await res.json();
+    if (rec.error){ throw new Error(rec.error); }
 
-  const tb = byId('tbody'); tb.innerHTML='';
-  (res.rows||[]).forEach(r=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.__row??''}</td>
-      <td>${safe(r['N° de Trámite'])}</td>
-      <td>${safe(r['Evento Deportivo'])}</td>
-      <td>${safe(r['Presentado por'])}</td>
-      <td>${safe(r['Ciudad'])}</td>
-      <td>${safe(r['Fecha de Emisión']||'')}</td>
-      <td>${badge(r['Estado del Trámite']||'')}</td>
-      <td>${
-        r.PDF ? `<a href="${r.PDF}" target="_blank">Abrir</a>` :
-        r['URL PDF'] ? `<a href="${r['URL PDF']}" target="_blank">Abrir</a>` :
-        r.PdfUrl ? `<a href="${r.PdfUrl}" target="_blank">Abrir</a>` : ''
-      }</td>
-      <td class="actions"><button onclick="openRow(${r.__row})">Editar</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-}
-
-function openRow(row){
-  google.script.run.withSuccessHandler(rec=>{
     state.selected = rec.__row;
-    state.pdfHeader = rec._pdfHeader; // puede ser null
+    state.pdfHeader = rec._pdfHeader || null;
+
     byId('editInfo').style.display='none';
     byId('editForm').style.display='block';
     setVal('f_Estado', rec['Estado del Trámite']||'');
@@ -241,65 +208,38 @@ function openRow(row){
     setVal('f_Observaciones', rec.Observaciones||'');
     const pdfVal = rec.PDF || rec['URL PDF'] || rec.PdfUrl || '';
     setVal('f_PdfUrl', pdfVal);
+
     window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
-  }).api_get(row);
+  }catch(e){
+    console.error(e);
+    Swal.fire("Error", e.message || "No se pudo abrir el registro","error");
+  }
 }
 
-function saveEdit(){
+/* GUARDAR CAMBIOS (POST urlencoded, igual que tu formulario) */
+async function saveEdit(){
   if(!state.selected) return;
-  const updates = {
-    'Estado del Trámite': val('f_Estado'),
-    'Fecha de Emisión': val('f_FechaEmision'),
-    'Observaciones': val('f_Observaciones'),
-  };
-  // Solo si existe columna PDF se envía:
-  if (state.pdfHeader) updates[state.pdfHeader] = val('f_PdfUrl');
 
-  google.script.run.withSuccessHandler(()=>{
-    Swal.fire("Guardado","Cambios aplicados","success");
-    load();
-  }).api_update({ __row: state.selected, updates });
-}
+  const params = new URLSearchParams();
+  params.set("action", "update");
+  params.set("__row", String(state.selected));
+  params.set("Estado del Trámite", val('f_Estado'));
+  params.set("Fecha de Emisión", val('f_FechaEmision'));
+  params.set("Observaciones", val('f_Observaciones'));
+  if (state.pdfHeader) params.set(state.pdfHeader, val('f_PdfUrl'));
 
-function regen(){
-  if(!state.selected) return;
-  google.script.run.withSuccessHandler(res=>{
-    if(res.ok){
-      const msg = res.pdf ? `PDF listo: <a href="${res.pdf}" target="_blank">abrir</a>` : 'PDF re-generado';
-      Swal.fire({ title:"Listo", html:msg, icon:"success" });
-      load();
-    }else{
-      Swal.fire("Atención", res.message || "Configura doc_template_id en Admin_Config", "info");
-    }
-  }).api_regenerar(state.selected);
-}
-
-/*** Ajustes del Panel ***/
-document.addEventListener('DOMContentLoaded', ()=>{
-  google.script.run.withSuccessHandler(cfg=>{
-    setVal('c_formato', cfg.formato_fecha_cert||'dd "de" mmmm "de" yyyy');
-    setVal('c_orden_por', cfg.orden_por||'N° de Trámite');
-    setVal('c_orden_dir', cfg.orden_dir||'desc');
-    setVal('c_tpl', cfg.doc_template_id||'');
-    setVal('c_folder', cfg.pdf_folder_id||'');
-  }).api_config_get();
+  const res = await fetch(API_BASE + "/", {
+    method: "POST",
+    headers: { "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+    body: params.toString()
+  });
+  const out = await res.json();
+  if (!out.ok){ Swal.fire("Error","No se pudo guardar","error"); return; }
+  Swal.fire("Guardado","Cambios aplicados","success");
   load();
-});
+}
 
-document.getElementById('saveCfg').addEventListener('click', ()=>{
-  const cfg = {
-    formato_fecha_cert: val('c_formato'),
-    orden_por: val('c_orden_por'),
-    orden_dir: val('c_orden_dir'),
-    doc_template_id: val('c_tpl'),
-    pdf_folder_id: val('c_folder')
-  };
-  google.script.run.withSuccessHandler(()=>{
-    byId('cfgMsg').textContent = 'Ajustes guardados.';
-    setTimeout(()=> byId('cfgMsg').textContent='', 2500);
-  }).api_config_save(cfg);
-});
+document.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 </html>
-
