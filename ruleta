@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ruleta de Rifa</title>
+<style>
+  :root{
+    --bg:#0b1020;--card:#131a33;--accent:#6ee7ff;--accent2:#a78bfa;--ok:#10b981;--warn:#f59e0b;--text:#eaf2ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100svh; display:grid; place-items:center;
+    background: radial-gradient(1200px 600px at 20% -20%, #1a244a 0, transparent 60%),
+                radial-gradient(1200px 600px at 120% 130%, #1b2a5a 0, transparent 60%),
+                var(--bg);
+    color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  }
+  .wrap{width:min(1100px, 95vw); margin:24px auto; display:grid; gap:18px}
+  .top{display:grid; grid-template-columns: 1fr 380px; gap:18px}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+         border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:16px; box-shadow: 0 20px 60px rgba(0,0,0,.35)}
+  h1{font-size:clamp(22px, 2.6vw, 30px); margin:0 0 6px; letter-spacing:.3px}
+  .muted{opacity:.8; font-size:14px}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0 2px}
+  button{
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#04121a; border:0; border-radius:999px; padding:10px 16px; font-weight:700; cursor:pointer;
+    box-shadow:0 10px 30px rgba(82,198,235,.35); transition:transform .08s ease;
+  }
+  button:disabled{opacity:.5; cursor:not-allowed}
+  button:active{transform:translateY(1px)}
+  .ghost{background:#1d274e; color:var(--text); box-shadow:none; border:1px solid rgba(255,255,255,.08)}
+  .ok{background:linear-gradient(135deg, #34d399, #10b981); color:#032218}
+  .warn{background:linear-gradient(135deg, #fbbf24, #f59e0b); color:#2b1900}
+  .wheel-wrap{position:relative; display:grid; place-items:center}
+  #wheel{width:min(640px, 95vw); height:min(640px, 95vw); display:block; border-radius:50%; background:#0f1630}
+  .pointer{
+    position:absolute; top:-4px; width:0; height:0; border-left:18px solid transparent;
+    border-right:18px solid transparent; border-bottom:28px solid var(--warn); filter:drop-shadow(0 6px 8px rgba(0,0,0,.5));
+  }
+  .pointer::after{content:""; position:absolute; left:-10px; top:26px; width:20px; height:6px; background:var(--warn); border-radius:3px}
+  .winner{
+    margin-top:8px; font-size:clamp(16px, 2.1vw, 18px); background:#0c132b; border:1px dashed rgba(255,255,255,.12);
+    padding:10px 12px; border-radius:12px
+  }
+  .list{max-height:320px; overflow:auto; font-size:14px; border-top:1px solid rgba(255,255,255,.08); margin-top:10px; padding-top:8px}
+  .pill{display:inline-block; padding:.15rem .5rem; border-radius:999px; background:#1b2447; border:1px solid rgba(255,255,255,.08)}
+  .flex{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .small{font-size:12px; opacity:.85}
+  .toggle{display:flex; align-items:center; gap:8px; user-select:none; cursor:pointer}
+  .toggle input{transform:scale(1.15)}
+  .footer{opacity:.7; font-size:12px; text-align:center; margin-top:8px}
+  .badge{font-weight:700; background:#15204a; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
+  .table{width:100%; border-collapse:collapse; font-size:13px}
+  .table td{padding:6px 8px; border-bottom:1px dashed rgba(255,255,255,.08)}
+  .name{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px}
+  @media (max-width: 980px){
+    .top{grid-template-columns: 1fr}
+  }
+  /* Confeti canvas encima */
+  #confetti{position:fixed; inset:0; pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <div class="top">
+    <div class="panel wheel-wrap">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="800" height="800" aria-label="ruleta"></canvas>
+      <div class="row" style="justify-content:center; margin-top:10px">
+        <button id="spinBtn">🎡 Girar</button>
+        <button class="ghost" id="resetBtn">🔄 Reset</button>
+        <button class="warn" id="exportBtn" title="Descargar historial (CSV)">⬇️ Exportar</button>
+      </div>
+      <div id="winner" class="winner">Ganador: <span class="pill">—</span></div>
+      <div class="small muted" style="text-align:center">Sugerencia: activa “Evitar repetidos” para ir eliminando a cada ganador.</div>
+    </div>
+
+    <div class="panel">
+      <div class="flex">
+        <h1>Participantes</h1>
+        <span class="badge" id="countBadge">0</span>
+      </div>
+      <label class="toggle" title="Eliminar al ganador de la ruleta">
+        <input type="checkbox" id="noRepeat" checked>
+        <span>Evitar repetidos (eliminar ganador)</span>
+      </label>
+
+      <div class="row">
+        <button class="ghost" id="shuffleBtn" title="Cambiar colores y orden">🔀 Mezclar</button>
+        <button class="ghost" id="removeSelBtn" title="Quitar seleccionado">🗑️ Quitar seleccionado</button>
+      </div>
+
+      <table class="table" id="peopleTable"></table>
+
+      <div class="list" id="historyBox">
+        <div class="small muted">Historial de ganadores aparecerá aquí…</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Hecho con ❤️ para tu rifa — funciona offline, sin librerías externas.</div>
+</div>
+
+<script>
+/* ====================== Datos (Número + Nombre) ====================== */
+let people = [
+  {n:1,   name:"Ronald Albán"},
+  {n:5,   name:"Sebastian Andrade"},
+  {n:7,   name:"David Ledesma"},
+  {n:8,   name:"Ronald Albán"},
+  {n:9,   name:"David Ledesma"},
+  {n:23,  name:"Elsita"},
+  {n:25,  name:"Ermel Avilez"},
+  {n:40,  name:"Elsita"},
+  {n:45,  name:"Mery Alvarado Carbo"},
+  {n:50,  name:"Thiago Chela"},
+  {n:69,  name:"David Ledesma"},
+  {n:77,  name:"Noemí Mejía"},
+  {n:90,  name:"Kebin Gaglay"},
+  {n:100, name:"GABRIELA LINCANGO"},
+  {n:145, name:"Mery Alvarado Carbo"},
+  {n:98,  name:"Jose Smith"},
+  {n:89,  name:"Jose Smith"},
+  {n:20,  name:"Narcisa Briones"},
+  {n:16,  name:"Narcisa Briones"},
+  {n:83,  name:"Luis Rosero"},
+  {n:116, name:"Luis Rosero"},
+  {n:15,  name:"JEFFERSON LLANGA"}
+];
+
+/* ====================== UI & Estado ====================== */
+const wheel = document.getElementById('wheel');
+const ctx = wheel.getContext('2d');
+const spinBtn = document.getElementById('spinBtn');
+const resetBtn = document.getElementById('resetBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const removeSelBtn = document.getElementById('removeSelBtn');
+const countBadge = document.getElementById('countBadge');
+const historyBox = document.getElementById('historyBox');
+const winnerEl = document.getElementById('winner').querySelector('span');
+const peopleTable = document.getElementById('peopleTable');
+const noRepeatChk = document.getElementById('noRepeat');
+const exportBtn = document.getElementById('exportBtn');
+
+let angle = 0;           // ángulo actual
+let spinning = false;    // está girando
+let selectedIndex = -1;  // índice seleccionado en tabla
+let history = [];        // ganadores
+
+/* ====================== Utilidades ====================== */
+const rnd = (a,b)=>Math.random()*(b-a)+a;
+const shuffle = arr => arr.sort(()=>Math.random()-0.5);
+const lerp = (a,b,t)=>a+(b-a)*t;
+function easeOutCubic(t){return 1- Math.pow(1-t,3);}
+function toCSV(rows){
+  const head = ["numero","nombre","fecha"];
+  const body = rows.map(r=>[r.n, `"${r.name.replace(/"/g,'""')}"`, new Date(r.ts).toLocaleString('es-EC')]);
+  const all = [head, ...body].map(r=>r.join(',')).join('\n');
+  return new Blob([all], {type:'text/csv;charset=utf-8;'});
+}
+
+/* Paleta boni: se repite si faltan colores */
+const COLORS = [
+  "#8b5cf6","#06b6d4","#f59e0b","#34d399","#ef4444","#3b82f6","#a855f7","#10b981",
+  "#eab308","#f472b6","#22d3ee","#84cc16","#fb7185","#60a5fa","#2dd4bf","#f97316"
+];
+
+function colorFor(i){ return COLORS[i % COLORS.length]; }
+
+/* ====================== Dibujo de la ruleta ====================== */
+function drawWheel(){
+  const radius = wheel.width/2;
+  ctx.clearRect(0,0,wheel.width,wheel.height);
+  ctx.save();
+  ctx.translate(radius, radius);
+  ctx.rotate(angle);
+
+  const n = people.length || 1;
+  const arc = (Math.PI*2) / n;
+
+  for(let i=0;i<n;i++){
+    // sector
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,radius-8, i*arc, (i+1)*arc);
+    ctx.closePath();
+    ctx.fillStyle = colorFor(i);
+    ctx.fill();
+
+    // separador
+    ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // texto
+    ctx.save();
+    ctx.fillStyle = "#0b1020";
+    ctx.rotate(i*arc + arc/2);
+    ctx.textAlign="right";
+    ctx.font = `${Math.max(14, radius*0.045)}px system-ui, sans-serif`;
+    const entry = people[i] ?? {n:"—", name:"(vacío)"};
+    const txt = `#${entry.n} · ${entry.name}`;
+    ctx.translate(radius*0.92, 0);
+    // caja clara detrás
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    const w = ctx.measureText(txt).width;
+    ctx.fillRect(-w-10, -16, w+12, 32);
+    // texto oscuro
+    ctx.fillStyle = "#0b1020";
+    ctx.fillText(txt, -6, 8);
+    ctx.restore();
+  }
+
+  // centro
+  ctx.beginPath();
+  ctx.arc(0,0, radius*0.12, 0, Math.PI*2);
+  ctx.fillStyle = "#0b1228";
+  ctx.fill();
+  ctx.lineWidth=3; ctx.strokeStyle="rgba(255,255,255,.35)"; ctx.stroke();
+
+  // texto centro
+  ctx.fillStyle = "#dbeafe";
+  ctx.font = `${Math.max(16, radius*0.06)}px ui-sans-serif, sans-serif`;
+  ctx.textAlign="center";
+  ctx.fillText("¡Suerte!", 0, 8);
+
+  ctx.restore();
+}
+
+/* ====================== Interfaz tabla ====================== */
+function renderTable(){
+  countBadge.textContent = people.length;
+  if(!people.length){
+    peopleTable.innerHTML = `<tr><td class="small muted">Sin participantes.</td></tr>`;
+    return;
+  }
+  const rows = people.map((p,i)=>`
+    <tr data-i="${i}" style="${i===selectedIndex?'background:rgba(110,231,255,.12)':''}">
+      <td><span class="pill" style="background:${colorFor(i)}; color:#0b1020; font-weight:700">#${p.n}</span></td>
+      <td class="name">${p.name}</td>
+      <td class="small muted">(${i+1})</td>
+    </tr>`).join('');
+  peopleTable.innerHTML = rows;
+  [...peopleTable.querySelectorAll('tr')].forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      selectedIndex = Number(tr.dataset.i);
+      renderTable(); drawWheel();
+    });
+  });
+}
+
+/* ====================== Girar y elegir ganador ====================== */
+function pickIndexByAngle(a){
+  // a es el ángulo absoluto (radianes). El puntero apunta a -90° (arriba).
+  const n = people.length;
+  const arc = (Math.PI*2)/n;
+  const corrected = (a + Math.PI/2) % (Math.PI*2); // que caiga en el tope
+  const idx = Math.floor( (n - (corrected / arc)) % n );
+  return idx;
+}
+
+async function spin(){
+  if(spinning || people.length===0){return}
+  spinning = true; spinBtn.disabled = true;
+
+  // destino aleatorio: varias vueltas + un sector al azar
+  const n = people.length;
+  const arc = (Math.PI*2)/n;
+  const extra = rnd(0, arc);       // dentro del sector
+  const fullSpins = 6;             // vueltas completas
+  const target = angle + fullSpins*(Math.PI*2) + (Math.floor(Math.random()*n))*arc + extra;
+
+  const duration = 4200; // ms
+  const start = performance.now();
+  let now;
+  while( (now = performance.now()) - start < duration ){
+    const t = easeOutCubic((now-start)/duration);
+    angle = lerp(angle, target, t);
+    drawWheel();
+    await new Promise(r=>requestAnimationFrame(r));
+  }
+  angle = target % (Math.PI*2);
+  drawWheel();
+
+  const idx = pickIndexByAngle(angle);
+  selectedIndex = idx;
+  const winner = people[idx];
+  winnerEl.textContent = `#${winner.n} — ${winner.name}`;
+  confettiBurst();
+
+  // historial
+  history.unshift({n:winner.n, name:winner.name, ts:Date.now()});
+  renderHistory();
+
+  // eliminar si no-repeat
+  if(noRepeatChk.checked){
+    people.splice(idx,1);
+    // mover el ángulo para mantener la referencia visual
+    const newArc = (Math.PI*2)/(people.length||1);
+    angle = (angle % (Math.PI*2)); // ya está
+  }
+  renderTable(); drawWheel();
+
+  spinning = false; spinBtn.disabled = false;
+}
+
+function renderHistory(){
+  if(!history.length){ historyBox.innerHTML = '<div class="small muted">Historial de ganadores aparecerá aquí…</div>'; return; }
+  historyBox.innerHTML = history.map(h=>`
+    <div>🎉 <strong>#${h.n}</strong> — ${h.name} <span class="small muted">· ${new Date(h.ts).toLocaleString('es-EC')}</span></div>
+  `).join('');
+}
+
+/* ====================== Confeti ====================== */
+const confCanvas = document.getElementById('confetti');
+const cfx = confCanvas.getContext('2d');
+function resizeConfetti(){ confCanvas.width=innerWidth; confCanvas.height=innerHeight; }
+addEventListener('resize', resizeConfetti); resizeConfetti();
+
+function confettiBurst(){
+  const parts = Array.from({length: 140}, ()=>({
+    x: innerWidth/2, y: 80, r: rnd(3,6), vx: rnd(-4,4), vy: rnd(2,6), a: rnd(0,Math.PI*2), va: rnd(-0.2,0.2),
+    life: rnd(600,1400), color: COLORS[Math.floor(Math.random()*COLORS.length)]
+  }));
+  const start = performance.now();
+  (function frame(now){
+    const t = now - start;
+    cfx.clearRect(0,0,confCanvas.width, confCanvas.height);
+    parts.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.a += p.va;
+      cfx.save();
+      cfx.translate(p.x, p.y);
+      cfx.rotate(p.a);
+      cfx.fillStyle = p.color;
+      cfx.fillRect(-p.r, -p.r, p.r*2, p.r*2);
+      cfx.restore();
+    });
+    if(t < Math.max(...parts.map(p=>p.life))) requestAnimationFrame(frame);
+  })(performance.now());
+}
+
+/* ====================== Eventos ====================== */
+spinBtn.addEventListener('click', spin);
+resetBtn.addEventListener('click', ()=>{
+  angle = 0; drawWheel(); winnerEl.textContent = '—';
+});
+shuffleBtn.addEventListener('click', ()=>{
+  shuffle(people); renderTable(); drawWheel();
+});
+removeSelBtn.addEventListener('click', ()=>{
+  if(selectedIndex>=0){ people.splice(selectedIndex,1); selectedIndex=-1; renderTable(); drawWheel(); }
+});
+exportBtn.addEventListener('click', ()=>{
+  const blob = toCSV(history);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ganadores_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* Inicializar */
+renderTable(); drawWheel(); renderHistory();
+</script>
+</body>
+</html>
